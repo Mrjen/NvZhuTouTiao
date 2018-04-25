@@ -3,10 +3,22 @@
     <view class="myCenter space_b">
       <view class="d_p space_b">
         <view class="d_fle">
-          <view class="myCenterName">{{userInfo.nickName}}</view>
+          <block>
+            <view v-if="userInfo.nickName?true:false" class="myCenterName">{{userInfo.nickName}}</view>
+            <view v-else class="myCenterName"><open-data type="userNickName"></open-data></view>
+          </block>
           <image class="gender mg_15" :src="people.gender==0?'../image/girl.png':'../image/boy.png'" />
         </view>
-        <image class="myCenterImg" @click="editInfo" :src="userInfo.avatarUrl" />
+        <block>
+            <image v-if="userInfo.avatarUrl?true:false" 
+                   class="myCenterImg" 
+                   @click="editInfo" 
+                   :src="userInfo.avatarUrl"/>
+            <view v-else class="myCenterImg">
+               <open-data type="userAvatarUrl" @click="editInfo"></open-data>
+            </view>
+        </block>
+        
       </view>
       <view class="d_fle">
         <view class="m_r_45" @click="toLikeList">
@@ -109,6 +121,7 @@
     width: 150rpx;
     height: 150rpx;
     border-radius: 50%;
+    overflow: hidden;
   }
 
   .msg-tag{

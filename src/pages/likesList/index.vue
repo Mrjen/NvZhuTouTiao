@@ -1,28 +1,32 @@
 <template>
-  <div class="like-list">
-    <view v-for="(item,idx) in likeList" 
-         :key="item.cover">
+<div class="like-list">
+  <view v-if="likeList.length?true:false">
+    <view v-for="(item,idx) in likeList" :key="item.cover">
       <view class="list-item">
-         <view class="time">{{item.date}}</view>
-         <view class="in-item" 
-               v-for="(lis,idxs) in item.list"  
-               :key="lis.article_id"
-               @click="toDetail(lis.article_id)">
-             <view class="item-left">
-                <view class="title">{{lis.title}}</view>
-                <view class="info">
-                   <view class="info-icon">转发{{lis.sharetimes}}</view>
-                   <view class="info-icon">评论{{lis.commenttimes}}</view>
-                   <view class="info-icon">喜欢{{lis.liketimes}}</view>
-                </view>
-             </view>
-             <view class="in-right">
-                <image :src="lis.cover" mode="widthFix"></image>
-             </view>
-         </view>
+        <view class="time">{{item.date}}</view>
+        <view class="in-item" v-for="(lis,idxs) in item.list" :key="lis.article_id" @click="toDetail(lis.article_id)">
+          <view class="item-left">
+            <view class="title">{{lis.title}}</view>
+            <view class="info">
+              <view class="info-icon">转发{{lis.sharetimes}}</view>
+              <view class="info-icon">评论{{lis.commenttimes}}</view>
+              <view class="info-icon">喜欢{{lis.liketimes}}</view>
+            </view>
+          </view>
+          <view class="in-right">
+            <image :src="lis.composer_cover" mode="widthFix"></image>
+          </view>
+        </view>
       </view>
     </view>
-  </div>
+  </view>
+
+  <view v-else class="none-more">
+       暂无数据
+  </view>
+
+</div>
+
 </template>
 
 <script>

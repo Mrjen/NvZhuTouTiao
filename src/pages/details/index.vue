@@ -1,214 +1,292 @@
 <template>
-  <div class="detail">
-    <!-- 话题主题 -->
-    <view class="topic">
-      <view class="topic_top">  
-        <view class="topic_title">{{detail.title}}</view>
-        <!-- <image class="topic_img" mode="widthFix" :src="detail.composer_cover"/> -->
-        <view class="content">
-            <rich-text class="richtext" :nodes="ArticleContent" @click="tap"></rich-text>
-        </view>
-        <view class="topic_bottom">
-            <view class="readBg">
-              <view class="read">阅读</view>
-              <view class="read_time">{{detail.readtimes}}</view>
-            </view>
-            <view class="read">{{detail.create_time}}</view>
-        </view>        
+<div class="detail">
+  <!-- 话题主题 -->
+  <view class="topic">
+    <view class="topic_top">
+      <view class="topic_title">{{detail.title}}</view>
+      <!-- <image class="topic_img" mode="widthFix" :src="detail.composer_cover"/> -->
+      <view class="content">
+        <!-- <rich-text class="richtext" :nodes="ArticleContent" @click="tap"></rich-text> -->
+        <wxParse :content="ArticleContent"/>
       </view>
-      
-      <view class="button_flex">
-        <button class="three_button" open-type="share" hover-class="none">
-          <image src="../image/share.png" class="topic_button" />
-          <view>{{detail.sharetimes}}</view>
-        </button>
-        <button class="three_button" @click="openArticleComm" hover-class="none">
-          <image src="../image/comment.png" class="topic_button_w" />
-          <view>{{detail.commenttimes}}</view>
-        </button>
-        <button class="three_button" :class="detail.likestatus=='1'?'active_text':''" @click="likeArticle" hover-class="none">
-          <image :src="detail.likestatus=='0'?'../image/like.png':'../image/like-active.png'" 
-                 class="topic_button_o" />
-          <view>{{detail.liketimes}}</view>
-        </button>
+      <view class="topic_bottom">
+        <view class="readBg">
+          <view class="read">阅读</view>
+          <view class="read_time">{{detail.readtimes}}</view>
+        </view>
+        <view class="read">{{detail.create_time}}</view>
       </view>
     </view>
 
-    
+    <view class="button_flex">
+        <button class="three_button" 
+                @click="openSharePopup(detail.title, detail.article_id)"
+                hover-class="none">
+        <image mode="widthFix" 
+               src="../image/share.png" 
+               class="topic_button" />
+        <view>{{detail.sharetimes}}</view>
+      </button>
 
-    <!-- 精彩评论 -->
-    <view class="comments" v-if="topComment.length>0?true:false">
-        <view class="wonderfulComments">精彩评论</view>
-        <view class="commentsConter" v-for="(comm,cidx) in topComment" :key="comm.id">
-            <view class="display_flex space_b">
-                <view class="display_flex">
-                    <image :src="comm.avatarUrl" class="head_img" />
-                    <view class="flex_end">
-                        <view class="display_flex">
-                            <view class="comment_name">{{comm.nickName}}</view>
-                            <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
-                            <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
-                        </view>
-                        <view class="floor display_flex">
-                            <view>{{comm.create_time}}</view>
-                            <view class="verticalBar"></view>
-                            <view>{{comm.floor}}楼</view>
-                        </view>
-                    </view>
-                </view>
-                <view class="display_flex comm_comment">
-                    <view class="nice"  :class="comm.likestatus=='1'?'active_text':''">
-                        <image class="niceImg" 
-                         @click="likeTopComment(cidx,comm.id,comm.likestatus)"
-                        :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'" />
-                        {{comm.liketimes}}
-                    </view>
-
-                    <image class="commentTalk" @click="followCommentComment(comm.id,cidx,comm.users_id)" src="../image/commentTalk.png" />
-                </view>
-            </view>
-            <view class="commentsTxt">
-                {{comm.comment}}
-            </view>
-            <!-- 跟评 -->
-            <view class="com_comments"  v-if="comm.follow_comment.length>0">
-                <view class="font_24 border_bottom" 
-                      v-for="(follow, fidx) in comm.follow_comment" 
-                      :key="follow.floor">
-                      <view class="user-info">
-                          <view class="info-left">
-                              <img class="info-avatar" :src="follow.avatarUrl"/>
-                              <view class="info-info">
-                                  <view class="info-name">{{follow.nickName}}</view>
-                                  <view class="info-time">{{follow.create_time}}</view>
-                              </view>
-                          </view>
-                          <view class="info-comm-btn">
-                              <view class="zan">
-                                  <img v-if="follow.likestatus=='0'" 
-                                       @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
-                                       mode="widthFix" src="../image/nice.png" alt="">
-                                  <img v-if="follow.likestatus=='1'" 
-                                       @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
-                                       mode="widthFix" src="../image/h_nice.png" alt="">
-                                  {{follow.liketimes}}
-                              </view>
-                              <view class="info-comm-cion">
-                                  <img mode="widthFix" @click="followFollowComment" src="../image/commentTalk.png"/>
-                              </view>
-                          </view>
-                      </view>
-                    <view class="talker">回复<text>@{{follow.renickName}}：</text>{{follow.follow_comment}}</view>
-                </view>
-                <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
-                <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view>
-            </view>
-        </view>
+        <button class="three_button" 
+                @click="openArticleComm" 
+                hover-class="none">
+        <image mode="widthFix" 
+               src="../image/comment.png" 
+               class="topic_button_w" />
+        <view>{{detail.commenttimes}}</view>
+      </button>
+      <button class="three_button" 
+              :class="detail.likestatus=='1'?'active_text':''" 
+              @click="likeArticle" 
+              hover-class="none">
+        <image mode="widthFix" 
+               :src="detail.likestatus=='0'?'../image/like.png':'../image/like-active.png'" 
+               class="topic_button_o"/>
+        <view>{{detail.liketimes}}</view>
+      </button>
     </view>
+  </view>
 
-    
+  <!-- 精彩评论 -->
+  <view class="comments" 
+        v-if="topComment.length>0?true:false">
+    <view class="wonderfulComments">精彩评论</view>
+    <view class="commentsConter" 
+          v-for="(comm,cidx) in topComment" 
+          :key="comm.id">
+      <view class="display_flex space_b">
+        <view class="display_flex">
+          <image :src="comm.avatarUrl" class="head_img" />
+          <view class="flex_end">
 
-    
-    <!-- 最新评论 -->
-    <view class="comments" v-if="comment.length>0?true:false">
-        <view class="wonderfulComments">最新评论</view>
-        <view class="commentsConter" v-for="(comm,cidx) in comment" :key="comm.id">
-            <view class="display_flex space_b">
-                <view class="display_flex">
-                    <image :src="comm.avatarUrl" class="head_img" />
-                    <view class="flex_end">
-                        <view class="display_flex">
-                            <view class="comment_name">{{comm.nickName}}</view>
-                            <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
-                            <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
-                        </view>
-                        <view class="floor display_flex">
-                            <view>{{comm.create_time}}</view>
-                            <view class="verticalBar"></view>
-                            <view>{{comm.floor}}楼</view>
-                        </view>
-                    </view>
-                </view>
-                <view class="display_flex comm_comment">
-                    <view class="nice"  :class="comm.likestatus=='1'?'active_text':''">
-                        <image class="niceImg" 
-                         @click="likeTopComment(cidx,comm.id,comm.likestatus)"
-                        :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'" />
-                        {{comm.liketimes}}
-                    </view>
+            <view class="display_flex">
+              <view class="comment_name">{{comm.nickName}}</view>
+              <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
+              <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
+            </view>
 
-                    <image class="commentTalk" @click="followCommentComment(comm.id,cidx,comm.users_id)" src="../image/commentTalk.png" />
-                </view>
+            <view class="floor display_flex">
+              <view>{{comm.create_time}}</view>
+              <view class="verticalBar"></view>
+              <view>{{comm.floor}}楼</view>
             </view>
-            <view class="commentsTxt">
-                {{comm.comment}}
-            </view>
-            <!-- 跟评 -->
-            <view class="com_comments"  v-if="comm.follow_comment.length>0">
-                <view class="font_24 border_bottom" 
-                      v-for="(follow, fidx) in comm.follow_comment" 
-                      :key="follow.floor">
-                      <view class="user-info">
-                          <view class="info-left">
-                              <img class="info-avatar" :src="follow.avatarUrl"/>
-                              <view class="info-info">
-                                  <view class="info-name">{{follow.nickName}}</view>
-                                  <view class="info-time">{{follow.create_time}}</view>
-                              </view>
-                          </view>
-                          <view class="info-comm-btn">
-                              <view class="zan">
-                                  <img v-if="follow.likestatus=='0'" 
-                                       @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论')"
-                                       mode="widthFix" src="../image/nice.png" alt="">
-                                  <img v-if="follow.likestatus=='1'" 
-                                       @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论')"
-                                       mode="widthFix" src="../image/h_nice.png" alt="">
-                                  {{follow.liketimes}}
-                              </view>
-                              <view class="info-comm-cion">
-                                  <img mode="widthFix" @click="followFollowComment(follow.user_id, follow.follow_comment_id, fidx, cidx, '最新评论')" src="../image/commentTalk.png"/>
-                              </view>
-                          </view>
-                      </view>
-                    <view class="talker">回复<text>@{{follow.renickName}}：</text>{{follow.follow_comment}}</view>
-                </view>
-                <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
-                <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view>
-            </view>
+
+          </view>
         </view>
-    </view>
+        <view class="display_flex comm_comment">
+          <view class="nice" :class="comm.likestatus=='1'?'active_text':''">
+            <image class="niceImg" 
+                   mode="widthFix" 
+                   @click="likeCommentZan(cidx,comm.id,comm.likestatus, '精彩评论点赞')" 
+                   :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'"/> 
+                   {{comm.liketimes}}
+          </view>
 
-    <view class="writeBg_zhanwei"></view>
-    <!-- <view @click="addComment" style="position:fixed;top:10rpx;right:0;border:1px solid red; width:80rpx;height:80rpx">发送</view> -->
-    <!-- 评论输入 -->
-    <view class="writeBg">
-        <image src="../image/writeComment.png" class="writeComment"/>
-        <view style="width: 100%;">
-            <!-- @blur="inputBlur" -->
-            <input placeholder="点击输入你的评论" 
-                    :focus="inputFcus" 
-                    @click="inputGetFocus"
-                    fixed="true"
-                    cursor-spacing="20"
-                    v-model="commContent"
-                    auto-height="true"
-                    @confirm="addComment"
-                    confirm-type="send"
-                    placeholder-style="color:#999"
-                    class="inputRedict"/>
-                    <!-- show-confirm-bar="true" -->
+          <block>
+          <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
+              <image class="commentTalk" src="../image/commentTalk.png"/> 
+          </button>
+          <image v-else class="commentTalk" 
+                 @click="followCommentComment(comm.id, cidx, comm.user_id,'精彩评论一级', comm.nickName)" 
+                 src="../image/commentTalk.png"/>
+        </block>
+
         </view>
+      </view>
+      <view class="commentsTxt">
+        {{comm.comment}}
+      </view>
+      <!-- 跟评 -->
+      <view class="com_comments" 
+            v-if="comm.follow_comment.length>0">
+        <view class="font_24 border_bottom" 
+              v-for="(follow, fidx) in comm.follow_comment" 
+              :key="follow.floor">
+
+          <view class="user-info">
+            <view class="info-left">
+              <img class="info-avatar" :src="follow.avatarUrl" />
+              <view class="info-info">
+                <view class="info-name">{{follow.nickName}}</view>
+                <view class="info-time">{{follow.create_time}}</view>
+              </view>
+            </view>
+
+            <view class="info-comm-btn">
+              <view class="zan">
+                <img v-if="follow.likestatus=='0'" 
+                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
+                     mode="widthFix" 
+                     src="../image/nice.png" alt=""/>
+                <img v-if="follow.likestatus=='1'" 
+                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
+                     mode="widthFix" 
+                     src="../image/h_nice.png" alt=""> {{follow.liketimes}}
+              </view>
+
+              <view class="info-comm-cion">
+                <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
+                    <image class="commentTalk" src="../image/commentTalk.png"/> 
+                </button>
+                <img v-else mode="widthFix" 
+                     @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '精彩评论二级', follow.nickName)" 
+                     src="../image/commentTalk.png"/>
+              </view>
+
+            </view>
+          </view>
+          <view class="talker">回复
+            <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
+          </view>
+        </view>
+        <view class="otherAnswer" 
+              v-if="comm.is_page" 
+              @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
+        <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
+      </view>
     </view>
+  </view>
+
+  <!-- 最新评论 -->
+  <view class="comments" v-if="comment.length>0?true:false">
+    <view class="wonderfulComments">最新评论</view>
+    <view class="commentsConter" 
+          v-for="(comm, cidx) in comment" 
+          :key="comm.id">
+      <view class="display_flex space_b">
+        <view class="display_flex">
+          <image :src="comm.avatarUrl" class="head_img" />
+          <view class="flex_end">
+            <view class="display_flex">
+              <view class="comment_name">{{comm.nickName}}</view>
+              <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
+              <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
+            </view>
+            <view class="floor display_flex">
+              <view>{{comm.create_time}}</view>
+              <view class="verticalBar"></view>
+              <view>{{comm.floor}}楼</view>
+            </view>
+          </view>
+        </view>
+        <view class="display_flex comm_comment">
+          <view class="nice" :class="comm.likestatus=='1'?'active_text':''">
+            <image class="niceImg" 
+                   @click="likeCommentZan(cidx,comm.id,comm.likestatus, '最新评论点赞')" 
+                   :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'"/> 
+                   {{comm.liketimes}}
+          </view>
+
+          <block>
+              <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
+                    <image class="commentTalk" src="../image/commentTalk.png"/>
+              </button>
+          <image v-else class="commentTalk" 
+                 @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)" 
+                 src="../image/commentTalk.png"/>
+         </block>
+
+        </view>
+      </view>
+      <view class="commentsTxt">
+        {{comm.comment}}
+      </view>
+      <!-- 跟评 -->
+      <view class="com_comments" 
+            v-if="comm.follow_comment.length>0">
+        <view class="font_24 border_bottom" 
+              v-for="(follow, fidx) in comm.follow_comment" 
+              :key="follow.floor">
+          <view class="user-info">
+            <view class="info-left">
+              <img class="info-avatar" :src="follow.avatarUrl" />
+              <view class="info-info">
+                <view class="info-name">{{follow.nickName}}</view>
+                <view class="info-time">{{follow.create_time}}</view>
+              </view>
+            </view>
+            <view class="info-comm-btn">
+              <view class="zan">
+                <img v-if="follow.likestatus=='0'" 
+                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论',follow.nickName)"
+                     mode="widthFix" 
+                     src="../image/nice.png" alt="">
+                <img v-if="follow.likestatus=='1'" 
+                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论',follow.nickName)"
+                     mode="widthFix" 
+                     src="../image/h_nice.png" alt=""> {{follow.liketimes}}
+              </view>
+
+              <view class="info-comm-cion">
+                  <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
+                    <image class="commentTalk" src="../image/commentTalk.png"/> 
+                 </button>
+                <img v-else mode="widthFix" 
+                     @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '最新评论二级', follow.nickName)" 
+                     src="../image/commentTalk.png"/>
+              </view>
+
+            </view>
+          </view>
+          <view class="talker">回复
+            <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}</view>
+        </view>
+        <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
+        <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
+      </view>
+    </view>
+  </view>
+
+  <view class="writeBg_zhanwei"></view>
+
+  <block>
 
 
-  </div>
+  <!-- 评论输入 -->
+  <view v-if="is_accredit=='1'?true:false" class="writeBg">
+      <!-- {{is_accredit}} -->
+      <textarea  :placeholder="inputPlaceholder"
+                 @focus="inputGetFocus"
+                 auto-height="true"
+                 fixed="true"
+                 cursor-spacing="20"
+                 v-model="commContent"
+                 @confirm="addComment"
+                 confirm-type="send" 
+                 placeholder-style="color:#999"
+                 :focus="inputFcus"
+                 class="inputRedict"/>
+  </view>
+
+  <!-- 仿input授权按钮 -->
+  <button v-else open-type="getUserInfo" @getuserinfo="getUserInfo" class="getinfo"> 
+      <view class="same-input">发表你的观点</view>
+  </button>
+  </block>
+   <!--分享卡片-->
+    <sharpop @openSharePopup="openSharePopup" 
+             @closeSharPop="closeSharPop" 
+             :popup="popup" 
+             @downloadPoster="downloadPoster"
+             :ArticleId="ArticleId"></sharpop>
+
+  <!-- 合成海报的canvas -->
+  <canvas canvas-id="mycanvas" style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1000px;top:-1500px"></canvas>
+
+  <!-- <button style="position:fixed;left:0;top:500rpx" @click="addComment">发送</button> -->
+
+</div>
+
 </template>
 
 <script>
 import wxRequest from "../../utils/http.js";
 import api from "../../utils/api.js";
-import tips from '../../utils/tips'
+import tips from '../../utils/tips';
+import wxParse from 'mpvue-wxparse';
+import sharPop from '../../components/shareItem';
+import utils from '../../utils/utils';
 export default {
   data(){
       return {
@@ -225,8 +303,21 @@ export default {
         follow_page: 1,             // 跟评列表page
         follow_index: null,         // 跟评的index
         follow_id: null,
-        user_id: null              // user_id
+        user_id: null,              // user_id
+        comment_id:null,            // 评论id
+        comment_type:null,          // 评论类型  -> 最新评论 \ 精彩评论 
+        inputPlaceholder: '发表你的观点',
+        popup: false,
+        ArticleTtictle: '',
+        ArticleId: '',             // 文章id
+        nickName: '',              // 用户名字
+        is_accredit: null,         // 是否授权
+        userInfo:{}
       }
+  },
+  components: {
+    wxParse:wxParse,
+    sharpop:sharPop
   },
   async onLoad(options){
       console.log('页面加载了',options)
@@ -236,29 +327,34 @@ export default {
       this.detail = detail.data.data;
       this.comment = detail.data.data.comment;
       this.id = options.id;
+      this.ArticleId = options.id;
+
+    //   获取用户信息
+    const userInfo = await wxRequest(api.getUserInfo,{},'POST')
+    console.log('请求is_accredit', userInfo)
+    this.is_accredit = userInfo.data.data.is_accredit;
   },
   onUnload(){
       console.log('隐藏了')
-    this.inputFcus = false;
+      this.inputFcus = false;
   },
   methods:{
     // 文章评论
     openArticleComm() {
+       console.log('评论文章')
+       this.inputPlaceholder = '发表你的观点';
        this.inputFcus = true;
-       this.commentDom = 'article'
+       this.commentDom = 'article';
+       this.page = 2;
     },
-    // 
+    // input获取焦点
     inputGetFocus(){
-      this.inputFcus = true;
-    },
-    // bindfocus
-    bindfocus(){
-       this.inputFcus = true;
+        console.log('获取焦点没有触发？')
+        this.inputFcus = true;
     },
     // input失去焦点
     inputBlur(){
        console.log('失去焦点')
-      //this.inputFcus = false;
     },
     // 点击跟评图标
     followComment(id){
@@ -273,13 +369,35 @@ export default {
       if(like.data.code === api.STATUS){
           this.detail.likestatus = (status=='inc'?'1':'0')
           if(status =='inc'){
-              if(this.detail.liketimes.indexOf('万')) return false;
               this.detail.liketimes++
           }else if(status =='dec'){
-              if(this.detail.liketimes.indexOf('万')) return false;
               this.detail.liketimes--
           }
       }
+    },
+    // 点击追评图标
+    followCommentComment(id, idx, user_id, type, nickName){
+        console.log('点击一级追评图标', id, idx, user_id, type, nickName)
+       this.commentDom = 'follow';
+       this.inputFcus = true;
+       this.id = id;
+       this.commentIdx = idx;
+       this.comment_id = id;
+       this.user_id = user_id;
+       this.comment_type = type;
+       this.inputPlaceholder = `回复${nickName}`
+    },
+    // 追评添加追评
+    async followFollowComment(user_id, comment_id, fidx, cidx, type, nickName){
+        console.log('点击二级评论', user_id, comment_id, fidx, cidx, type, nickName)
+        this.inputFcus = true;
+        this.user_id = user_id;
+        this.commentDom = 'follow';
+        this.comment_id = comment_id;
+        this.follow_index = fidx;
+        this.commentIdx = cidx;
+        this.comment_type = type;
+        this.inputPlaceholder = `回复${nickName}`
     },
     // 提交评论
     async addComment(){
@@ -290,40 +408,63 @@ export default {
            this.commentArticle()
        }else if(this.commentDom === 'follow'){
            console.log('追评')
-           this.commentFollow(this.user_id)
+           this.commentFollow(this.user_id, this.comment_id, this.follow_index, this.commentIdx, this.comment_type)
        }
     },
-    // 点击追评图标
-    followCommentComment(id,idx,user_id){
-        console.log(id, idx,user_id )
-       this.commentDom = 'follow';
-       this.inputFcus = true;
-       this.id = id;
-       this.commentIdx = idx;
-       this.user_id = user_id;
-    },
     // 创建追评
-    async commentFollow(user_id){
-        console.log('追评')
+    async commentFollow(user_id, comment_id, fidx, cidx, comment_type){
+        console.log('提交评论', user_id, comment_id, fidx, cidx, comment_type)
          let follow = await wxRequest(api.followComment, { 
              follow_comment: this.commContent, 
              re_user_id: user_id, 
-             comment_id: this.id
+             comment_id: this.comment_id
              })
          this.commContent = '';
          console.log('follow',follow)
-         if(follow.data.code == api.STATUS){
-             tips.success('评论成功')
-             console.log('评论成功',follow.data.data)
-             let comment = this.comment;
-             comment[this.commentIdx].follow_comment = follow.data.data;
-             console.log()
-             this.comment = comment;
+         let comment = null;
+         if(comment_type==='精彩评论一级'){
+             console.log('精彩评论一级')
+             comment = this.topComment;
+         }else if(comment_type==='最新评论一级'){
+             console.log('最新评论一级')
+             comment = this.comment;
+         }else if(comment_type==='最新评论二级'){
+             console.log('最新评论二级')
+            comment = this.comment;
+         }else if(comment_type==='精彩评论二级'){
+            console.log('精彩评论二级')
+            comment = this.topComment;
          }
+
+         console.log('comment', comment)
+
+         if(follow.data.code === api.STATUS){
+             tips.success('评论成功')
+             console.log('评论成功', follow.data.data)
+             if(comment_type=='精彩评论一级'){
+                 console.log('精彩评论一级')
+                 comment[this.commentIdx].follow_comment = follow.data.data;
+                 this.topComment = comment;
+             }else if(comment_type=='精彩评论二级'){
+                 console.log('精彩评论二级')
+                 comment[this.commentIdx].follow_comment = follow.data.data;
+                 this.topComment = comment;
+             }else if(comment_type=='最新评论一级'){
+                 console.log('最新评论一级')
+                  comment[this.commentIdx].follow_comment = follow.data.data;
+                  this.comment = comment;
+             }else if(comment_type=='最新评论二级'){
+                 console.log('最新评论二级')
+                  comment[this.commentIdx].follow_comment = follow.data.data;
+                  this.comment = comment;
+             }
+         }
+         this.inputFcus = false;
          console.log('follow', follow)
     },
     //   评论文章
     async commentArticle(){
+        this.inputPlaceholder = '发表你的观点';
        let comm = await wxRequest(api.addComment,{ article_id: this.id, comment: this.commContent });
        if(comm.data.code === api.STATUS){
            this.commContent = '';
@@ -333,52 +474,43 @@ export default {
        
        console.log('comm', comm)
     },
-    // 精选评论点赞
-    // async likeComment(idx,id,status){
-    //    console.log('评论点赞',idx,id,status)
-    //    let _status = (status=='0'?'inc':'dec')
-    //    let like = await wxRequest(api.likeComment,{ comment_id: id, status: _status })
-    //    if(like.data.code == api.STATUS){
-    //        let __status = (status == '0'?'1':'0')
-    //        let topComment = this.topComment;
-    //        topComment[idx].likestatus = __status;
-    //        console.log('__status',__status)
-    //        if(topComment[idx].liketimes.indexOf('万')) return false;
-    //        if(status=='0'){ 
-    //            topComment[idx].liketimes++ 
-    //         }else{
-    //            topComment[idx].liketimes--
-    //        }
-    //        this.topComment = topComment;
-    //    }
-    //    console.log('like', like)
-    // },
-    // // 最新评论点赞
-    // async likeTopComment(idx,id,status){
-    //     console.log('最新评论点赞',idx,id,status)
-    //     let _status = (status=='0'?'inc':'dec')
-    //     let like = await wxRequest(api.likeComment,{ comment_id: id, status: _status })
-    //     if(like.data.code === api.STATUS) {
-    //         let __status = (status == '0'?'1':'0')
-    //         let comment = this.comment;
-    //         comment[idx].likestatus = __status;
-    //        if(status=='0'){ 
-    //            comment[idx].liketimes++ 
-    //            }else{
-    //            comment[idx].liketimes--
-    //        }
-    //        this.comment = comment;
-    //     }
-    // },
+    // 点赞
+    async likeCommentZan(cidx, id, likestatus, type){
+        console.log('点赞')
+      console.log(cidx, id, likestatus, type)
+      this.inputFcus = false;
+      let _status = (likestatus=='0'?'inc':'dec')
+      let like = await wxRequest(api.likeComment, { comment_id: id, status: _status })
+      if(like.data.code === api.STATUS){
+          let comment = null;
+          if(type==='最新评论点赞'){
+             comment = this.comment;
+          }else if(type==='精彩评论点赞'){
+             comment = this.topComment;
+          }
+          if(likestatus){
+              comment[cidx].liketimes--;
+              comment[cidx].likestatus = 0;
+          }else if(likestatus=='0'){
+              comment[cidx].liketimes++;
+              comment[cidx].likestatus = 1;
+          }
+          if(type==='最新评论点赞'){
+             this.comment = comment ;
+          }else if(type==='精彩评论点赞'){
+             this.topComment = comment ;
+          }
+      }
+    },
     // 增加文章分享次数
     async ArticleShare(){
         let share = await wxRequest(api.addArticleShareTime,{ id: this.detail.id })
         console.log('增加分享次数', share)
     },
-
     // 查看更多评论
     async readMoreFollowComm(id,idx){
       this.follow_index = idx;
+      this.inputFcus = false;
       let page = this.follow_page;
       if(this.follow_id!==id){
           this.follow_page = 1;
@@ -399,14 +531,12 @@ export default {
           this.comment = _comment;
       }
     },
-    
     // 追加评论点赞
     async addFollowZan(status, id, fidx, cidx, type){
         let that = this;
+        this.inputFcus = false;
        console.log(status, id, fidx)
        let _status = (status=='0'?'inc':'dec');
-       console.log('_status', _status)
-       console.log(this.comment[cidx].follow_comment[fidx])
       let zan = await wxRequest(api.likefollowcomment, { follow_comment_id: id, status: _status })
       if(zan.data.code === api.STATUS){
            let _comment = (type==='精彩评论')?that.topComment:that.comment
@@ -425,19 +555,39 @@ export default {
            
       }
     },
-
-    // 追评添加追评
-    async followFollowComment(user_id, comment_id, fidx, cidx, type){
-    console.log('回复评论')
-        let follow = await wxReuqest(api.followComment, { 
-            follow_comment: this.commContent, 
-            re_user_id: user_id, 
-            comment_id: comment_id
-         })
-         this.commContent = '';
-         console.log('回复评了', follow)
+    // 分享
+    openSharePopup(title, id){
+        this.popup = true;
+        this.ArticleTtictle = title;
+        this.ArticleId = id;
+        wx.hideTabBar()
+    },
+    // 关闭分享
+    closeSharPop(){
+        this.popup = false;
+        wx.showTabBar()
+    },
+    // 下载海报
+    downloadPoster(){
+        console.log('下载海报')
+        const ctx = wx.createCanvasContext('mycanvas');
+        utils.userDownloadPoster(ctx, this.ArticleTtictle,this)
+    },
+    // 获取用户信息
+    async getUserInfo(e){
+        let userInfo = e.mp.detail.userInfo;
+        userInfo.is_accredit = 1;
+        this.userInfo = userInfo;
+        let _userInfo = await wxRequest(api.saveUserInfo,userInfo);
+        if(_userInfo.data.code === api.STATUS){
+            this.is_accredit = 1;
+            this.inputGetFocus = true;
+            console.log('this.inputGetFocus', this.inputGetFocus)
+        }
     }
   },
+
+  
 
   async onReachBottom(){
       console.log('触底了')
@@ -454,20 +604,34 @@ export default {
 
   async onPullDownRefresh(){
      console.log('刷新页面')
+    this.inputFcus = false;
+    console.log('this.inputFcus',this.inputFcus)
     const detail = await wxRequest(api.getArticleDetail,{ id: this.detail.id, page: 1 })
     this.ArticleContent = detail.data.data.view_content;
     this.topComment = detail.data.data.topcomment;
     this.detail = detail.data.data;
     this.comment = detail.data.data.comment;
      wx.stopPullDownRefresh();
-     tips.success('刷新成功')
+    //  tips.success('刷新成功')
   },
+
+  async onShow(){
+      console.log('onShow')
+      let userInfo = await wxRequest(api.getUserInfo,{},'POST')
+      console.log('user',userInfo)
+      if(userInfo.data.code === api.STATUS){
+        this.nickName = userInfo.data.data.nickName;
+      }
+},
 
   onShareAppMessage(){
       let that = this;
+      that.popup = false;
+      let nickName = this.nickName || '我';
+      let article_id = this.ArticleId;
     return {
-        title: this.detail.title,
-        path: '/pages/details/main?id=' + this.detail.id,
+        title: `${nickName}邀请你一起讨论这个话题`,
+        path: '/pages/details/main?id=' + article_id,
         success: function(res) {
             // 转发成功
             console.log('转发成功')
@@ -508,6 +672,8 @@ page{
 .zan{
     align-items: center;
     margin-right: 40rpx;
+    display: flex;
+    align-items: center;
 }
 
 .comments{
@@ -560,10 +726,13 @@ page{
     font-size: 28rpx;
     color: #999999;
     margin-right: 40rpx;
+    display: flex;
+    align-items: center;
 }
 .niceImg{
-    width:26rpx;
+    width:32rpx;
     height: 30rpx;
+    padding: 8rpx;
 }
 .commentTalk{
     width: 32rpx;
@@ -589,41 +758,9 @@ page{
     margin-bottom: 24rpx;
 }
 
-
-.writeBg{
-    position:fixed;
-    bottom:0;
-    left: 0;
-    right: 0;
-    background-color:#fff;
-    border-top:1rpx solid #D7D7D9; 
-    display:flex;
-    align-items:center;
-    padding:0 30rpx;
-    height: 100rpx;
-}
-
-.writeBg_zhanwei{
-    width:100%;
-    min-height: 100rpx;
-    display: flex;
-    align-items: center;
-}
-.inputRedict{
-    background-color:#eee;
-    border-radius:14rpx;
-    min-height: 70rpx;
-    padding-left: 20rpx;
-    line-height: 74rpx;
-    box-sizing: border-box;
-    font-size:30rpx;
-    color: #333;
-    width:100%;
-}
-
 .content{
-    img{
-        width: 100%;
+    image{
+        width: 100% !important;
         display: block;
     }
 }
@@ -700,6 +837,9 @@ page{
 // 跟评样式
 .comm_comment{
     margin-right: 20rpx;
+    height: 50rpx;
+    display: flex;
+    align-items: center;
 }
 
 .com_comments{
@@ -757,13 +897,19 @@ page{
     }
     .info-comm-btn{
         display: flex;
+        height: 50rpx;
+        align-items: center;
         img{
             width: 32rpx;
+            height: 26rpx;
+            padding: 8rpx;
         }
     }
     .info-comm-cion{
         img{
             width: 32rpx;
+            height: 26rpx;
+            padding: 8rpx;
         }
     }
 }

@@ -12,7 +12,8 @@
   "dependencies": {
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
-    "mpvue": "^1.0.6"
+    "mpvue": "^1.0.6",
+    "mpvue-wxparse": "^0.5.4"
   },
   "devDependencies": {
     "mpvue-loader": "^1.0.8",

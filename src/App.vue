@@ -5,18 +5,14 @@ import utils from './utils/utils'
 export default {
   created () {
     // 调用API从本地缓存中获取数据
-    console.log('app created and cache logs by setStorageSync')
+    // console.log('app created and cache logs by setStorageSync')
   },
   async onLaunch(){
-    console.log('小程序加载了')
+    // console.log('小程序加载了')
     wx.login({
       success(res){
          wxRequest(api.getToken,{code:res.code}).then((res)=>{
           wx.setStorage({ key:'token',data: res.data.data.token})
-          if(res.data.data.savestatus) return false;
-          utils.getUserInfo().then((res) => {
-            utils.saveUserInfo(res.userInfo)
-          })
         })
       }
     })
@@ -25,14 +21,7 @@ export default {
 </script>
 
 <style>
-.topBar{
-  margin: 40rpx;
-  display: flex;
-  color: #C4A7EC;
-  font-size: 30rpx;
-  justify-content: space-between;
-  align-items: center;
-}
+
 .space_b{
   justify-content: space-between;
 }
@@ -131,8 +120,9 @@ export default {
 .three_button_focus{
   background-color: #cccccc;
 }
+
 button::after{
-border: none;
+  border: none;
 }
 
 /* 性别 */
@@ -160,6 +150,90 @@ border: none;
 
 .active_text{
   color: #7c48c6 !important;
+}
+
+
+.none-more{
+  width: 750rpx;
+  height: 500rpx;
+  text-align: center;
+  line-height: 500rpx;
+  color: #999;
+  font-size: 30rpx;
+}
+
+/* 评论输入框 */
+
+.writeBg{
+    position:fixed;
+    bottom:0rpx;
+    left: 0;
+    right: 0;
+    background-color:#fff;
+    border-top:1rpx solid #D7D7D9; 
+    display:flex;
+    align-items:center;
+    padding:20rpx 30rpx;
+    min-height: 100rpx;
+    box-sizing: border-box;
+}
+
+.inputRedict{
+    background-color:#eee;
+    border-radius:14rpx;
+    min-height: 70rpx;
+    padding-left: 20rpx;
+    line-height: 40rpx;
+    box-sizing: border-box;
+    font-size:30rpx;
+    color: #333;
+    max-height: 200rpx;
+    flex: 1;
+    display: block;
+}
+
+.writeBg_zhanwei{
+  width: 750rpx;
+  height: 120rpx;
+}
+
+/* 获取用户信息按钮 */
+.getinfo{
+  width: 750rpx;
+  height: 100rpx;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 20rpx 30rpx !important;
+}
+
+.same-input{
+  width: 100%;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-indent: 20rpx;
+  font-size: 30rpx;
+  background: #eee;
+  color: #999;
+  text-align: left;
+  border-radius: 14rpx;
+}
+
+button::after{
+  display: none;
+}
+
+/* 假的评论按钮 */
+page .same-comm{
+  background-color: transparent;
+  width: 32rpx;
+  height: 32rpx;
+  line-height: 1;
+  padding: 0 !important;
+  margin:0 !important;
+  overflow: inherit !important;
 }
 
 /* this rule will be remove */

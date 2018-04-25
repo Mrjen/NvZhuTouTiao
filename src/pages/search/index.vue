@@ -16,10 +16,12 @@
          </view> -->
       <view v-if="!searchWord">
         <!-- 女主热搜 -->
-        <view class="hotSearch">女主热搜</view>
+        <view class="hotSearch">热搜</view>
         <view class="wrap">
-          <view class="hotSearchRank" v-for="item in hotsearch" :key="item.id">{{item.title}}</view>
-          <view class="manyHot" @tap="toIndex()">更多热门话题>></view>
+          <view class="hotSearchRank" 
+                v-for="item in hotsearch" 
+                :key="item.id">{{item.title}}</view>
+          <view class="manyHot" @click="toIndex()">更多热门话题>></view>
         </view>
         <!-- 搜索历史 -->
         <view class="historySearch" v-if="historySearch.length">搜索历史</view>
@@ -40,8 +42,8 @@
       <view class="about">
         相关话题
       </view>
-      <view class="topic topic_Tboder" v-for="article in articleList">
-        <view class="topic_top" @tap="toDetails()">
+      <view class="topic topic_Tboder" v-for="(article, idx) in articleList" :key="article.id">
+        <view class="topic_top" @tap="toDetails(article.article_id)">
           <view class="topic_title">{{article.title}}</view>
           <view class="cover-box">
             <image class="topic_img" :src="article.cover" />
@@ -55,28 +57,45 @@
           </view>
         </view>
         <view class="button_flex">
-          <button class="three_button" hover-class="three_button_focus">
+          <button class="three_button" hover-class="three_button_focus"  
+              @click="openSharePopup(article.title, article.article_id, idx)">
               <image src="../image/share.png" class="topic_button" />
               <view>{{article.sharetimes}}</view>
             </button>
-          <button class="three_button" hover-class="three_button_focus" @tap="toDetails()">
+          <button class="three_button" hover-class="none" @tap="toDetails(article.id)">
               <image src="../image/comment.png" class="topic_button_w" />
               <view>{{article.commenttimes}}</view>
             </button>
-          <button class="three_button" hover-class="three_button_focus">
-              <image src="../image/like.png" class="topic_button_o" />
+          <button class="three_button" 
+              hover-class="none" 
+              @click="addLike(article.likestatus, article.id, idx)">
+              <image v-if="article.likestatus===0?true:false" src="../image/like.png" class="topic_button_o" />
+              <image v-if="article.likestatus===1?true:false" src="../image/like-active.png" class="topic_button_o" />
               <view>{{article.liketimes}}</view>
             </button>
         </view>
       </view>
     </view>
+
+     <!--分享卡片-->
+    <sharpop @openSharePopup="openSharePopup" 
+             @closeSharPop="closeSharPop" 
+             :popup="popup" 
+             @downloadPoster="downloadPoster"
+             :ArticleId="ArticleId"></sharpop>
+
+      <!-- 合成海报的canvas -->
+  <canvas canvas-id="mycanvas" 
+          style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1000px;top:-1500px"></canvas>
+
   </div>
 </template>
 
 <script>
   import wxRequest from "../../utils/http.js";
   import api from "../../utils/api.js";
-  import utils from '../../utils/utils'
+  import utils from '../../utils/utils';
+  import sharPop from '../../components/shareItem';
   export default {
     data() {
       return {
@@ -86,23 +105,38 @@
         searchWord: '',
         keywordsList: [],
         historySearch: [],
-        page: 1
+        page: 1,
+        ArticleTtictle: '',
+        popup: false,
+        ArticleId:'',
+        nickName:''
       }
     },
-    async created() {
-      let hotsearch = await wxRequest(api.HotSearch, {}, 'POST');
-      this.hotsearch = hotsearch.data.data;
-      console.log('hotsearch', HistorySearch)
+    
+    components: {
+      sharpop:sharPop
     },
+
     watch: {
       searchWord(val, old) {
         console.log(val, old)
         // this.searchHot(val)
       }
     },
-    onShow() {
+    async onShow() {
       console.log('onshow')
       this.searchHostery()
+
+
+      let hotsearch = await wxRequest(api.HotSearch, {}, 'POST');
+      this.hotsearch = hotsearch.data.data;
+      console.log('hotsearch', HistorySearch)
+
+      let userInfo = await wxRequest(api.getUserInfo,{},'POST')
+      console.log('user',userInfo)
+      if(userInfo.data.code === api.STATUS){
+        this.nickName = userInfo.data.data.nickName;
+      }
     },
     onReachBottom() {
       this.searchHot({
@@ -121,10 +155,59 @@
           url: '../index/main?desc=hot',
         })
       },
+
+      // 添加喜欢
+      async addLike(type, id, idx){
+        console.log(type, id, idx)
+         let _type = (type=='0'?'inc':'dec')
+         console.log('_type', _type)
+         let like = await wxRequest(api.likeArticle, { id: id, status: _type });
+         if(like.data.code === api.STATUS){
+           let _articleList = this.articleList;
+          let str = _articleList[idx].liketimes;
+          console.log('_type', _type)
+           if(_type == 'inc'){
+             _articleList[idx].liketimes++;
+             _articleList[idx].likestatus = 1;
+           }else if(_type == 'dec'){
+             _articleList[idx].liketimes--;
+             _articleList[idx].likestatus = 0;
+           }
+           this.articleList = _articleList;
+            // tips.success('点赞')
+         }
+      },
+
       searchArticle(word) {
         console.log('执行搜索')
         this.searchHot()
       },
+      
+      toDetails(id){
+        wx.navigateTo({
+          url: '../details/main?id='+ id 
+        })
+      },
+      // 分享
+      openSharePopup(title, id){
+         this.popup = true;
+         this.ArticleTtictle = title;
+         this.ArticleId = id;
+         wx.hideTabBar()
+      },
+      // 关闭分享
+      closeSharPop(){
+          this.popup = false;
+          wx.showTabBar()
+      },
+
+      // 下载海报
+      downloadPoster(){
+         console.log('下载海报')
+         const ctx = wx.createCanvasContext('mycanvas');
+         utils.userDownloadPoster(ctx, this.ArticleTtictle,this)
+      },
+
       //  关键词搜索
       async searchHot(data = {
         page: 1
@@ -168,11 +251,33 @@
       // 清空搜索框
       clearWords() {
         this.searchWord = '';
+        wx.switchTab({
+          url: '../index/main'
+        })
       }
     },
-    onShareAppMessage(){
+    // 分享
+    onShareAppMessage(res){
+        let that = this;
+        wx.showTabBar()
+        that.popup = false;
+        let nickName = this.nickName || '我';
+        console.log('res',res)
+        let article_id = this.ArticleId;
+        return {
+            title: `${nickName}邀请你一起讨论这个话题`,
+            path: '/page/details/main?articleid=' + article_id,
+            success: function(res) {
+              // 转发成功
+              utils.shareTime(article_id)
+              // console.log(res)
+            },
+            fail: function(res) {
+              // 转发失败
+            }
+          }
+    }
 
-  }
   }
 </script>
 

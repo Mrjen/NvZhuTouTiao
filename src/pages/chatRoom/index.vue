@@ -63,14 +63,23 @@
 
       </scroll-view>
     </view>
+
+<button @click="addComment">发送</button>
+
     <!-- 评论输入 -->
-    <view class="writeBg">
-      <view class="image"></view>
-      <view style="width: 100%;">
-        <input placeholder="点击输入你的评论" class="inputRedict" cursor-spacing="20" v-model="currentComment" @confirm="sendComment" placeholder-style="color:#999"
-        />
-      </view>
-    </view>
+  <view class="writeBg">
+      <textarea  :placeholder="inputPlaceholder"
+                 @focus="inputGetFocus"
+                 auto-height="true"
+                 fixed="true"
+                 cursor-spacing="20"
+                 v-model="commContent"
+                 @confirm="addComment"
+                 confirm-type="send" 
+                 placeholder-style="color:#999"
+                 class="inputRedict"/>
+  </view>
+    
   </div>
 </template>
 
@@ -83,10 +92,11 @@
       return {
         page: 2,
         comment_id: '',
-        currentComment: '',
+        commContent: '',
         commentTitle: {},
         commList: [],
-        scrollTop: 0
+        scrollTop: 0,
+        inputPlaceholder: '发表你的想法~'
       }
     },
     async onLoad(options) {
@@ -110,18 +120,23 @@
         return list;
       },
       //   发送评论
-      async sendComment() {
+      async addComment() {
+        if(!this.commContent) return false;
+        console.log('发送评论')
         let send = await wxRequest(api.followComment, {
           comment_id: this.comment_id,
-          follow_comment: this.currentComment,
+          follow_comment: this.commContent,
+          re_user_id: this.commentTitle.user_id
         })
+        console.log('send',send)
         if (send.data.code === api.STATUS) {
-          tips.success('评论成功', 800)
+          // tips.success('评论成功', 800)
           console.log('send', send.data.data.list)
           let _commList = this.commList;
           _commList.push(send.data.data.list);
           this.commList = _commList;
           this.scrollTop = 999999;
+          this.commContent = '';
         }
       },
 
@@ -232,42 +247,6 @@
 
   .flex_reverse {
     flex-direction: row-reverse;
-  }
-
-  .writeBg {
-    width: 100%;
-    height: 100rpx;
-    background: #fff;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    display: flex;
-    color: #fff;
-    box-sizing: border-box;
-    padding: 10rpx 40rpx;
-    align-items: center;
-    input {
-      font-size: 32rpx;
-      height: 70rpx;
-      line-height: 74rpx;
-      position: relative;
-      background: #eee;
-      color: #333;
-      border-radius: 0 14rpx 14rpx 0;
-    }
-    .image {
-      content: '';
-      display: block;
-      width: 34rpx;
-      height: 70rpx;
-      padding-left: 20rpx;
-      border-radius: 14rpx 0 0 14rpx;
-      background-color: #eee;
-      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAgCAMAAABAUVr7AAAAOVBMVEUAAAAQj98SldoQltsSldsRltsRltoQldoQldoRldoRltsRldsQltwRldsSldwQl98QltsRldsSltsAyOrMAAAAEnRSTlMAEJ8/gMDQYDDP8OBQsJAgcO/JSVeQAAAA2ElEQVQ4y83TwZaDIAyF4UQIRCPWue//sDNpD1ZtOLPtv3HhR4wLKC41AC3RuA2QVoA6FBOK+ihDHgsmjw1pIIz7SmixOO1giL+SlsMIIiFMehhYICZ/qL1MxnYDLC48Lm4qFr6J2cVh9j+hoXibWJza/xX1a4TdBAnsKgrfxAqcp+RPQQItbzMF4gEhdjMUtKNSN7GgGUzdxIIh5LmJBa3I1M1TrHLp4dcqvbbOPxD2MwtOmfoq/r7OgFWKg2ieAbSVBiV4rT7/Kn2mRIqy9fMFQdfhKQfxL/RODgQPzOlEAAAAAElFTkSuQmCC');
-      background-size: 34rpx 32rpx;
-      background-position: center center;
-      background-repeat: no-repeat;
-    }
   }
 
 </style>

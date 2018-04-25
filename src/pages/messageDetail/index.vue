@@ -3,6 +3,7 @@
     <view class="chatRoom">
       <scroll-view class="scroll" lower-threshold="250" 
                    scroll-y ="true" 
+                   :scroll-top="scrollTop"
                    @scrolltolower="scrolltolower">
         <!-- 时间信息 -->
         <!-- <view v-if="item.who==0" class="timeInfo">
@@ -11,23 +12,8 @@
             <view>{{item.time}}</view>
           </view>
         </view> -->
-
-        <!-- 我说的消息 -->
-        <!-- <view class="mySay">
-          <image :src="commentTitle.avatarUrl" class="myPotrait" />
-          <view>
-            <view class="readBg">
-              <view class="talkName">{{commentTitle.nickName}}</view>
-              <image class="gender" :src="commentTitle.gender==0?'../image/girl.png':'../image/boy.png'" />
-              <view v-if="commentTitle.owner" class="floorHost">楼主</view>
-            </view>
-            <view class="myPotraitContent">
-              {{commentTitle.comment}}
-            </view>
-          </view>
-        </view> -->
-
         <view class="chart-list" v-for="item in commList" :key="item.id">
+          <!-- <view class="time">{{}}</view> -->
           <view class="mySay" v-if="item.send_id==0?false:true">
             <image :src="item.avatarUrl" class="myPotrait" />
             <view>
@@ -62,19 +48,21 @@
 
       </scroll-view>
     </view>
-    <!-- 评论输入 -->
-    <view class="writeBg">
-      <view class="image"></view>
-      <view style="width: 100%;">
-        <input placeholder="点击输入你的评论" 
-               class="inputRedict" 
-               cursor-spacing="20" 
-               v-model="currentComment" 
-               @confirm="sendComment" 
-               placeholder-style="color:#999"
-        />
-      </view>
-    </view>
+
+  <!-- 评论输入 -->
+  <view class="writeBg">
+      <textarea  :placeholder="inputPlaceholder"
+                 @focus="inputGetFocus"
+                 auto-height="true"
+                 fixed="true"
+                 cursor-spacing="20"
+                 v-model="commContent"
+                 @confirm="addComment"
+                 confirm-type="send" 
+                 placeholder-style="color:#999"
+                 :focus="inputFcus"
+                 class="inputRedict"/>
+  </view>
   </div>
 </template>
 
@@ -85,8 +73,10 @@ export default {
   data() {
     return {
       commList:[],
-      currentComment:'',
-      reid:''
+      commContent:'',
+      reid:'',
+      inputPlaceholder: '回复小主：',
+      scrollTop: 0
     }
   },
   async onLoad(options){
@@ -96,18 +86,22 @@ export default {
   },
   methods:{
     async getMsgList(){
-      console.log(this.currentComment)
+      console.log(this.commContent)
         let msg = await wxRequest(api.systemMsgDetail, { reid: this.reid}, 'POST')
       if(msg.data.code === api.STATUS){
         console.log('msg',msg)
         this.commList = msg.data.data;
       }
     },
-    async sendComment(){
+    async addComment(){
       console.log(111)
-       let send = await wxRequest(api.feedBackMsg, { reid: this.reid,  message:this.currentComment })
+       let send = await wxRequest(api.feedBackMsg, { reid: this.reid,  message:this.commContent })
        if(send.data.code === api.STATUS){
           this.getMsgList()
+          this.commContent = '';
+          setTimeout(() => {
+            this.scrollTop = 999999;
+          }, 50);
        }
     }
   }
@@ -204,45 +198,5 @@ export default {
   .flex_reverse {
     flex-direction: row-reverse;
   }
-
-  .writeBg {
-    width: 100%;
-    height: 100rpx;
-    background: #fff;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    display: flex;
-    color: #fff;
-    box-sizing: border-box;
-    padding: 10rpx 40rpx;
-    align-items: center;
-    input {
-      font-size: 32rpx;
-      height: 70rpx;
-      line-height: 74rpx;
-      position: relative;
-      color: #333;
-      display: flex;
-      align-items: center;
-      background-color: #eee;
-      border-radius: 0 14rpx 14rpx 0 ;
-    }
-    .image {
-      content: '';
-      display: block;
-      width: 34rpx;
-      height: 32rpx;
-      padding-right: 20rpx;
-      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAgCAMAAABAUVr7AAAAOVBMVEUAAAAQj98SldoQltsSldsRltsRltoQldoQldoRldoRltsRldsQltwRldsSldwQl98QltsRldsSltsAyOrMAAAAEnRSTlMAEJ8/gMDQYDDP8OBQsJAgcO/JSVeQAAAA2ElEQVQ4y83TwZaDIAyF4UQIRCPWue//sDNpD1ZtOLPtv3HhR4wLKC41AC3RuA2QVoA6FBOK+ihDHgsmjw1pIIz7SmixOO1giL+SlsMIIiFMehhYICZ/qL1MxnYDLC48Lm4qFr6J2cVh9j+hoXibWJza/xX1a4TdBAnsKgrfxAqcp+RPQQItbzMF4gEhdjMUtKNSN7GgGUzdxIIh5LmJBa3I1M1TrHLp4dcqvbbOPxD2MwtOmfoq/r7OgFWKg2ieAbSVBiV4rT7/Kn2mRIqy9fMFQdfhKQfxL/RODgQPzOlEAAAAAElFTkSuQmCC');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: 34rpx 32rpx;
-      background-color: #eee;
-      border-radius: 14rpx 0 0 14rpx;
-      height: 70rpx;
-    }
-  }
-
 </style>
 

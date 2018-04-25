@@ -1,38 +1,30 @@
 <template>
   <div class="message">
-    <view class="msg-box" 
-          v-for="(item,idx) in msgList" 
-          :key="item.create_time">
-       <view class="message-item" 
-            @touchstart="touchS" 
-            @touchmove="touchM" 
-            @click="toDetail(item.reid)"
-            :data-index="idx"
-            @touchend="touchE" 
-            :style="item.txtStyle">
-        <view class="d_fle space_b">
-            <view class="sysTopic">系统通知</view>
-            <view class="sysTime">{{item.create_time}}</view>
+    <view v-if="msgList.length?true:false">
+        <view class="msg-box" 
+            v-for="(item,idx) in msgList" 
+            :key="item.create_time">
+        <view class="message-item" 
+              @touchstart="touchS" 
+              @touchmove="touchM" 
+              @click="toDetail(item.reid)"
+              :data-index="idx"
+              @touchend="touchE" 
+              :style="item.txtStyle">
+          <view class="d_fle space_b">
+              <view class="sysTopic">系统通知</view>
+              <view class="sysTime">{{item.create_time}}</view>
+          </view>
+          <view class="sysContent">{{item.message}}</view>
         </view>
-        <view class="sysContent">{{item.message}}</view>
+        <view class="delete" @click="deleteMsg(item.id, idx)">删除</view>
       </view>
-      <view class="delete" @click="deleteMsg(item.id, idx)">删除</view>
+    </view>
+     
+    <view v-else class="none-more">
+       暂无数据
     </view>
     
-    <!-- <view class="message">
-        <view class="d_fle space_b">
-            <view class="sysTopic">系统通知</view>
-            <view class="sysTime">2018/03/20</view>
-        </view>
-        <view class="sysContent">10元新人专属现金优惠券，请查收>></view>
-    </view>
-    <view class="message">
-        <view class="d_fle space_b">
-            <view class="sysTopic">系统通知</view>
-            <view class="sysTime">2018/03/20</view>
-        </view>
-        <view class="sysContent">10元新人专属现金优惠券，请查收>></view>
-    </view>   -->
   </div>
 </template>
 

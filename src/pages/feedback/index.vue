@@ -1,7 +1,7 @@
 <template>
   <div class="feedback">
         <view class="feedBg">
-            <textarea placeholder="你的意见是我们进步的动力！" 
+            <textarea placeholder="您在使用过程中遇到什么问题或有好的建议都可以反馈给我们哦~" 
                       placeholder-class="feedback_place" 
                       v-model="message"
                       class="feedbackdetail"  />
@@ -24,8 +24,23 @@ export default {
      async sendFeedBack(){
         let send = await wxRequest(api.feedBackMsg, { message:this.message })
         if(send.data.code === api.STATUS){
-            tips.success('反馈成功')
+            // tips.success('反馈成功')
             this.message = '';
+            wx.showModal({
+                title: '提示',
+                content: '感谢您的反馈，我们会尽快回复您！',
+                showCancel: false,
+                success: function(res) {
+                    if (res.confirm) {
+                    console.log('用户点击确定')
+                        wx.switchTab({
+                          url: '../mycenter/main'
+                        })
+                    } else if (res.cancel) {
+                    console.log('用户点击取消')
+                    }
+                }
+            })
         }
         console.log('send', send)
      }

@@ -59,6 +59,8 @@ export default {
   position: fixed;
   width: 100%;
   height: 100%;
+  left: 0;
+  top: 0;
 }
 
 .share-pop{
@@ -77,7 +79,7 @@ export default {
     background: #fff;
     position: absolute;
     left: 0;
-    bottom: 120rpx;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-around;

@@ -1,22 +1,25 @@
 <template>
   <div class="like-list">
-    <view v-for="(item,idx) in commentList" 
-         :key="item.cover">
-      <view class="list-item">
-         <view class="time">{{item.date}}</view>
-         <view class="in-item" 
-               v-for="(lis,idxs) in item.list"  
-               :key="lis.article_id"
-               @click="toDetail(lis.article_id)">
-             <view class="item-left">
-                <view class="title">{{lis.comment}}</view>
-                <view class="info">
-                   #{{lis.title}}
-                </view>
-             </view>
-         </view>
+    <view v-if="commentList.length?true:false">
+      <view v-for="(item,idx) in commentList" :key="item.cover">
+        <view class="list-item">
+          <view class="time">{{item.date}}</view>
+          <view class="in-item" v-for="(lis,idxs) in item.list" :key="lis.article_id" @click="toDetail(lis.article_id)">
+            <view class="item-left">
+              <view class="title">{{lis.comment}}</view>
+              <view class="info">
+                #{{lis.title}}
+              </view>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
+
+    <view v-else class="none-more">
+       暂无数据
+    </view>
+
   </div>
 </template>
 

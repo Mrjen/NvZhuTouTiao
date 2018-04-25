@@ -29,7 +29,7 @@
     <view class="item">
       <view class="text">城市</view>
       <view class="icon-view">
-        <img class="select-icon" @click="openMap" src="http://p766oymet.bkt.clouddn.com/nvzhu/icon-position.png" mode="widthFix" alt="">
+        <!-- <img class="select-icon" @click="openMap" src="http://p766oymet.bkt.clouddn.com/nvzhu/icon-position.png" mode="widthFix" alt=""> -->
         <picker style="min-width:100rpx" mode="region" @change="bindPickerChange" :range="cityArray">
         <view class="picker">
           {{currentCity}}
