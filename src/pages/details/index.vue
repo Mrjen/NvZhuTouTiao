@@ -247,6 +247,7 @@
   <view v-if="is_accredit=='1'?true:false" class="writeBg">
       <!-- {{is_accredit}} -->
       <textarea  :placeholder="inputPlaceholder"
+                 v-if="inputShow"
                  @focus="inputGetFocus"
                  auto-height="true"
                  fixed="true"
@@ -312,7 +313,8 @@ export default {
         ArticleId: '',             // 文章id
         nickName: '',              // 用户名字
         is_accredit: null,         // 是否授权
-        userInfo:{}
+        userInfo:{},
+        inputShow: true           // 输入框是否显示
       }
   },
   components: {
@@ -337,6 +339,7 @@ export default {
   onUnload(){
       console.log('隐藏了')
       this.inputFcus = false;
+      this.ArticleContent = '';
   },
   methods:{
     // 文章评论
@@ -440,6 +443,7 @@ export default {
 
          if(follow.data.code === api.STATUS){
              tips.success('评论成功')
+             this.inputFcus = false;
              console.log('评论成功', follow.data.data)
              if(comment_type=='精彩评论一级'){
                  console.log('精彩评论一级')
@@ -469,9 +473,9 @@ export default {
        if(comm.data.code === api.STATUS){
            this.commContent = '';
            tips.success('评论成功')
+           this.inputFcus = false;
            this.comment = comm.data.data.list;
        }
-       
        console.log('comm', comm)
     },
     // 点赞
@@ -560,11 +564,13 @@ export default {
         this.popup = true;
         this.ArticleTtictle = title;
         this.ArticleId = id;
+        this.inputShow = false;
         wx.hideTabBar()
     },
     // 关闭分享
     closeSharPop(){
         this.popup = false;
+        this.inputShow = true;
         wx.showTabBar()
     },
     // 下载海报
@@ -618,6 +624,7 @@ export default {
   async onShow(){
       console.log('onShow')
       let userInfo = await wxRequest(api.getUserInfo,{},'POST')
+      this.inputShow = true;
       console.log('user',userInfo)
       if(userInfo.data.code === api.STATUS){
         this.nickName = userInfo.data.data.nickName;
@@ -629,6 +636,7 @@ export default {
       that.popup = false;
       let nickName = this.nickName || '我';
       let article_id = this.ArticleId;
+      console.log('分享文章id', article_id)
     return {
         title: `${nickName}邀请你一起讨论这个话题`,
         path: '/pages/details/main?id=' + article_id,

@@ -163,10 +163,8 @@ async function userDownloadPoster(ctx,title,that){
       let bg = 'https://gcdn.playonwechat.com/nvzhu/poster-bg.png'
       const canvas_bg = await getImage(bg);
       let userInfo = await getUserInfo();
-
-      let avatarUrl = userInfo.userInfo.avatarUrl;
+      let avatarUrl = userInfo.avatarUrl || "https://nvzhu.zealcdn.cn/public/img/icon.jpg";
       ctx.drawImage(canvas_bg, 0, 0, 750, 1334)
-      
       // 画头像
       ctx.save()
       ctx.beginPath()
@@ -182,7 +180,9 @@ async function userDownloadPoster(ctx,title,that){
       ctx.beginPath()
       ctx.setFillStyle('#333333')
       ctx.setFontSize(34)
-      ctx.fillText(userInfo.userInfo.nickName, 150, 446)
+       
+      let nickName = userInfo.nickName || '匿名';
+      ctx.fillText(nickName, 150, 446)
       ctx.save()
       
       ctx.beginPath()
@@ -210,7 +210,7 @@ async function userDownloadPoster(ctx,title,that){
       
       // 画二维码
       ctx.beginPath();
-      let qr_code = 'https://gcdn.playonwechat.com/qr-code.png';
+      let qr_code = "https://gcdn.playonwechat.com/nvzhu/qr-code.jpg";
       let applet_qrcode = await getImage(qr_code)
       ctx.drawImage(applet_qrcode, 52, 1104, 200, 200)
       ctx.draw();
@@ -231,6 +231,7 @@ async function userDownloadPoster(ctx,title,that){
         complete(){
           wx.showTabBar()
           wx.hideLoading()
+          that.inputShow = true;
         }
       })
 }

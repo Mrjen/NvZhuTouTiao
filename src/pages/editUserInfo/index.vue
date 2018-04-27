@@ -8,7 +8,7 @@
     </view>
     <view class="item">
       <view class="text">名字</view>
-      <input type="text" :value="userInfo.nickName" />
+      <input type="text" :value="nickName" v-model="nickName"/>
     </view>
     <view class="item">
       <view class="text">性别</view>
@@ -60,7 +60,8 @@
         ageArray: [''],
         currentAge: 17,
         imageURL:'',
-        qqmapsdk: null
+        qqmapsdk: null,
+        nickName:''
       }
     },
     async onLoad() {
@@ -72,8 +73,10 @@
       this.ageArray = arr;
       let info = await wxRequest(api.getUserInfo, {}, 'POST')
       if (info.data.code === api.STATUS) {
+        console.log('info', info.data.data)
         this.userInfo = info.data.data;
-        this.currentCity = this.userInfo.country + this.userInfo.province + this.userInfo.city
+        this.currentCity = this.userInfo.province + this.userInfo.city
+        this.nickName = this.userInfo.nickName;
         if (info.data.data.gender === '1') {
           this.currentSex = ['男']
         } else if (info.data.data.gender === '2') {
@@ -81,14 +84,15 @@
         }
       }
     },
-    async onShow() {
-      
+    onShow() {
+       console.log('this.userInfo', this.userInfo)
     },
     methods: {
       // 选择城市
       bindPickerChange(e) {
         this.currentCity = e.mp.detail.value;
-        this.userInfo.city =  e.mp.detail.value;
+        this.userInfo.province = e.mp.detail.value[0];
+        this.userInfo.city =  e.mp.detail.value[1];
       },
       // 选择城市
       bindSexChange(e) {
@@ -139,6 +143,9 @@
       // 保存用户信息
       async saveInfo(){
         console.log('保存')
+        if(this.nickName){
+          this.userInfo.nickName = this.nickName
+        }
          let info = await wxRequest(api.saveUserInfo,this.userInfo)
          if(info.data.code===api.STATUS){
             tips.success('保存成功')
@@ -227,8 +234,9 @@
       font-size: 30rpx;
       line-height: 80rpx;
       text-align: center;
-      color: #444;
+      color: #fff;
       margin:120rpx auto 0 auto;
+      background: rgb(124,72,198);
       box-shadow: 0 0 5rpx rgba(124,72,198,.3);
     }
     .select-icon{

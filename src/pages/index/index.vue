@@ -74,7 +74,7 @@
     data() {
       return {
         currentTab: 1,
-        page: 1,
+        page: 2,
         desc: 'new',
         loadMore: true,
         articleList: [],
@@ -108,7 +108,6 @@
         console.log(res)
         if (res.data.code == api.STATUS) {
           that.articleList = res.data.data;
-          that.page++;
         }
       })
     },
@@ -195,9 +194,9 @@
         console.log(value)
         const that = this;
         this.desc = value;
-        this.page = 1;
+        this.page = 2;
         this.getArticle({
-          page: this.page,
+          page: 1,
           desc: value
         }).then(res => {
           if (res.data.code === api.STATUS) {

@@ -20,7 +20,7 @@
         <view class="wrap">
           <view class="hotSearchRank" 
                 v-for="item in hotsearch" 
-                :key="item.id">{{item.title}}</view>
+                :key="item.id" @click="Hots(item.id)">{{item.title}}</view>
           <view class="manyHot" @click="toIndex()">更多热门话题>></view>
         </view>
         <!-- 搜索历史 -->
@@ -43,10 +43,10 @@
         相关话题
       </view>
       <view class="topic topic_Tboder" v-for="(article, idx) in articleList" :key="article.id">
-        <view class="topic_top" @tap="toDetails(article.article_id)">
+        <view class="topic_top" @tap="Hots(article.article_id)">
           <view class="topic_title">{{article.title}}</view>
           <view class="cover-box">
-            <image class="topic_img" :src="article.cover" />
+            <image class="topic_img" :src="article.composer_cover" />
           </view>
           <view class="topic_bottom">
             <view class="readBg">
@@ -62,7 +62,7 @@
               <image src="../image/share.png" class="topic_button" />
               <view>{{article.sharetimes}}</view>
             </button>
-          <button class="three_button" hover-class="none" @tap="toDetails(article.id)">
+          <button class="three_button" hover-class="none" @tap="Hots(article.id)">
               <image src="../image/comment.png" class="topic_button_w" />
               <view>{{article.commenttimes}}</view>
             </button>
@@ -183,7 +183,7 @@
         this.searchHot()
       },
       
-      toDetails(id){
+      Hots(id){
         wx.navigateTo({
           url: '../details/main?id='+ id 
         })
