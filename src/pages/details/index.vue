@@ -3,7 +3,7 @@
   <!-- 话题主题 -->
   <view class="topic">
     <view class="topic_top">
-      <view class="topic_title">{{detail.title}}</view>
+      <view class="topic_title">{{ArticleTtictle}}</view>
       <!-- <image class="topic_img" mode="widthFix" :src="detail.composer_cover"/> -->
       <view class="content">
         <!-- <rich-text class="richtext" :nodes="ArticleContent" @click="tap"></rich-text> -->
@@ -12,20 +12,20 @@
       <view class="topic_bottom">
         <view class="readBg">
           <view class="read">阅读</view>
-          <view class="read_time">{{detail.readtimes}}</view>
+          <view class="read_time">{{Article_readtimes}}</view>
         </view>
-        <view class="read">{{detail.create_time}}</view>
+        <view class="read">{{Article_createtime}}</view>
       </view>
     </view>
 
     <view class="button_flex">
         <button class="three_button" 
-                @click="openSharePopup(detail.title, detail.article_id)"
+                @click="openSharePopup(ArticleTtictle, ArticleId)"
                 hover-class="none">
         <image mode="widthFix" 
                src="../image/share.png" 
                class="topic_button" />
-        <view>{{detail.sharetimes}}</view>
+        <view>{{Article_sharetimes}}</view>
       </button>
 
         <button class="three_button" 
@@ -34,16 +34,16 @@
         <image mode="widthFix" 
                src="../image/comment.png" 
                class="topic_button_w" />
-        <view>{{detail.commenttimes}}</view>
+        <view>{{Article_comments}}</view>
       </button>
       <button class="three_button" 
-              :class="detail.likestatus=='1'?'active_text':''" 
+              :class="Article_likestatus=='1'?'active_text':''" 
               @click="likeArticle" 
               hover-class="none">
         <image mode="widthFix" 
-               :src="detail.likestatus=='0'?'../image/like.png':'../image/like-active.png'" 
+               :src="Article_likestatus=='0'?'../image/like.png':'../image/like-active.png'" 
                class="topic_button_o"/>
-        <view>{{detail.liketimes}}</view>
+        <view>{{Article_liketimes}}</view>
       </button>
     </view>
   </view>
@@ -242,14 +242,13 @@
 
   <block>
 
-
   <!-- 评论输入 -->
   <view v-if="is_accredit=='1'?true:false" class="writeBg">
       <!-- {{is_accredit}} -->
       <textarea  :placeholder="inputPlaceholder"
                  v-if="inputShow"
-                 @focus="inputGetFocus"
                  auto-height="true"
+                 @focus="inputGetFocus"
                  fixed="true"
                  cursor-spacing="20"
                  v-model="commContent"
@@ -258,6 +257,7 @@
                  placeholder-style="color:#999"
                  :focus="inputFcus"
                  class="inputRedict"/>
+                 <!--    :focus="inputFcus" -->
   </view>
 
   <!-- 仿input授权按钮 -->
@@ -274,7 +274,10 @@
 
   <!-- 合成海报的canvas -->
   <canvas canvas-id="mycanvas" style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1000px;top:-1500px"></canvas>
-
+  
+  <view class="go-home" v-if="goHome" @click="goHomego">
+      <img src="https://gcdn.playonwechat.com/nvzhu/go-home.png"/>
+  </view>
   <!-- <button style="position:fixed;left:0;top:500rpx" @click="addComment">发送</button> -->
 
 </div>
@@ -300,7 +303,7 @@ export default {
         id:'',                      // 评论id
         commentDom:'article',       // 评论对象 article follow
         page: 2,                    // 最新评论页数
-        commentIdx: '',
+        commentIdx: '',             // 一级评论index
         follow_page: 1,             // 跟评列表page
         follow_index: null,         // 跟评的index
         follow_id: null,
@@ -308,13 +311,22 @@ export default {
         comment_id:null,            // 评论id
         comment_type:null,          // 评论类型  -> 最新评论 \ 精彩评论 
         inputPlaceholder: '发表你的观点',
-        popup: false,
-        ArticleTtictle: '',
-        ArticleId: '',             // 文章id
-        nickName: '',              // 用户名字
-        is_accredit: null,         // 是否授权
-        userInfo:{},
-        inputShow: true           // 输入框是否显示
+        Article_likestatus: '',     // 文章点赞状态
+        Article_liketimes: '',      // 文章喜欢次数
+        Article_readtimes: 0,       // 文章阅读次数
+        Article_createtime: '',     // 文章发布时间
+        Article_sharetimes: 0,      // 文章分享次数
+        Article_cover: null,        // 文章封面
+        Article_comments: 0,        // 文章被评论次数
+        popup: false,               // 分享海报弹窗
+        ArticleTtictle: '',         // 文章标题
+        ArticleId: '',              // 文章id
+        nickName: '',               // 用户名字
+        is_accredit: null,          // 是否授权
+        userInfo:{},                // 用户信息
+        inputShow: true,            // 输入框是否显示
+        shareQrcode: null,           // 分享二维码
+        goHome: false
       }
   },
   components: {
@@ -322,14 +334,43 @@ export default {
     sharpop:sharPop
   },
   async onLoad(options){
+      let that = this;
       console.log('页面加载了',options)
-      const detail = await wxRequest(api.getArticleDetail,{ id: options.id, page: 1 })
+      let _article_id = null;
+      if(options.id){
+          _article_id = options.id;
+          console.log('id')
+      }else if(options.scene){
+          _article_id = options.scene;
+          console.log('scene')
+          this.goHome = true;
+      }
+      console.log('_article_id', _article_id)
+      // 保证获取到token
+      const token = await utils.getToken();
+      console.log('token', token)
+      const detail = await wxRequest(api.getArticleDetail,{ id: _article_id, page: 1 })
+      // 这里数据字节过大，把数据拆分分次传递
+      this.id = _article_id;
+      this.ArticleId = _article_id;
       this.ArticleContent = detail.data.data.view_content;
       this.topComment = detail.data.data.topcomment;
-      this.detail = detail.data.data;
       this.comment = detail.data.data.comment;
-      this.id = options.id;
-      this.ArticleId = options.id;
+      this.Article_liketimes = detail.data.data.liketimes;
+      this.ArticleTtictle = detail.data.data.title;
+      this.Article_readtimes = detail.data.data.readtimes;
+      this.Article_createtime = detail.data.data.create_time;
+      this.Article_sharetimes = detail.data.data.sharetimes;
+      this.Article_comments = detail.data.data.commenttimes;
+      this.Article_likestatus = detail.data.data.likestatus;
+      
+      wx.downloadFile({
+          url: detail.data.data.composer_cover,
+          success(res){
+              console.log('封面', res)
+              that.Article_cover = res.tempFilePath
+          }
+      })
 
     //   获取用户信息
     const userInfo = await wxRequest(api.getUserInfo,{},'POST')
@@ -342,6 +383,16 @@ export default {
       this.ArticleContent = '';
   },
   methods:{
+      // 返回首页
+    goHomego(){
+        console.log(111)
+        wx.switchTab({
+            url: '../index/main',
+            fail(res){
+                console.log(res)
+            }
+        })
+    },
     // 文章评论
     openArticleComm() {
        console.log('评论文章')
@@ -352,7 +403,7 @@ export default {
     },
     // input获取焦点
     inputGetFocus(){
-        console.log('获取焦点没有触发？')
+        console.log('获取焦点了')
         this.inputFcus = true;
     },
     // input失去焦点
@@ -367,14 +418,14 @@ export default {
     },
     // 喜欢文章
     async likeArticle(){
-      const status = this.detail.likestatus == '0'?'inc':'dec'
-      const like = await wxRequest(api.likeArticle, { id: this.detail.id, status: status })
+      const status = this.Article_likestatus == '0'?'inc':'dec'
+      const like = await wxRequest(api.likeArticle, { id: this.ArticleId, status: status })
       if(like.data.code === api.STATUS){
-          this.detail.likestatus = (status=='inc'?'1':'0')
+          this.Article_likestatus = (status=='inc'?'1':'0')
           if(status =='inc'){
-              this.detail.liketimes++
+              this.Article_liketimes++
           }else if(status =='dec'){
-              this.detail.liketimes--
+              this.Article_liketimes--
           }
       }
     },
@@ -407,12 +458,14 @@ export default {
         console.log('评论', this.commContent)
        if(!this.commContent) return;
        if(this.commentDom === 'article'){
-        console.log('评论文章')
-           this.commentArticle()
+            console.log('评论文章')
+            this.commentArticle()
        }else if(this.commentDom === 'follow'){
            console.log('追评')
            this.commentFollow(this.user_id, this.comment_id, this.follow_index, this.commentIdx, this.comment_type)
+           this.inputFcus = false;
        }
+       this.inputFcus = false;
     },
     // 创建追评
     async commentFollow(user_id, comment_id, fidx, cidx, comment_type){
@@ -508,7 +561,7 @@ export default {
     },
     // 增加文章分享次数
     async ArticleShare(){
-        let share = await wxRequest(api.addArticleShareTime,{ id: this.detail.id })
+        let share = await wxRequest(api.addArticleShareTime,{ id:  this.ArticleId })
         console.log('增加分享次数', share)
     },
     // 查看更多评论
@@ -560,11 +613,16 @@ export default {
       }
     },
     // 分享
-    openSharePopup(title, id){
+    async openSharePopup(title, id){
         this.popup = true;
         this.ArticleTtictle = title;
         this.ArticleId = id;
         this.inputShow = false;
+        let shareQrcode = await wxRequest(api.getQrcode, { id: id });
+         console.log('shareQrcode', shareQrcode)
+         if(shareQrcode.data.code === api.STATUS){
+           this.shareQrcode = shareQrcode.data.data;
+         }
         wx.hideTabBar()
     },
     // 关闭分享
@@ -577,7 +635,12 @@ export default {
     downloadPoster(){
         console.log('下载海报')
         const ctx = wx.createCanvasContext('mycanvas');
-        utils.userDownloadPoster(ctx, this.ArticleTtictle,this)
+        utils.userDownloadPoster({
+            ctx:ctx,
+            title:this.ArticleTtictle,
+            that:this,
+            qrcodePath: this.shareQrcode
+        })
     },
     // 获取用户信息
     async getUserInfo(e){
@@ -593,16 +656,16 @@ export default {
     }
   },
 
-  
-
   async onReachBottom(){
       console.log('触底了')
-      let more = await wxRequest(api.commentList, { page: this.page, id: this.detail.id })
+      let more = await wxRequest(api.commentList, { page: this.page, id:  this.ArticleId })
       console.log('more', more)
       if(more.data.code === api.STATUS){
           if(more.data.data.length>0){
               let oldList = this.comment;
-              this.comment = [...oldList,...more.data.data.length];
+              
+              this.comment = [...oldList,...more.data.data];
+
               this.page++;
           }
       }
@@ -612,11 +675,17 @@ export default {
      console.log('刷新页面')
     this.inputFcus = false;
     console.log('this.inputFcus',this.inputFcus)
-    const detail = await wxRequest(api.getArticleDetail,{ id: this.detail.id, page: 1 })
+    const detail = await wxRequest(api.getArticleDetail,{ id:  this.ArticleId, page: 1 })
     this.ArticleContent = detail.data.data.view_content;
     this.topComment = detail.data.data.topcomment;
-    this.detail = detail.data.data;
     this.comment = detail.data.data.comment;
+    this.Article_liketimes = detail.data.data.liketimes;
+    this.ArticleTtictle = detail.data.data.title;
+    this.Article_readtimes = detail.data.data.readtimes;
+    this.Article_createtime = detail.data.data.create_time;
+    this.Article_sharetimes = detail.data.data.sharetimes;
+    this.Article_comments = detail.data.data.commenttimes;
+    this.Article_likestatus = detail.data.data.likestatus;
      wx.stopPullDownRefresh();
     //  tips.success('刷新成功')
   },
@@ -640,6 +709,7 @@ export default {
     return {
         title: `${nickName}邀请你一起讨论这个话题`,
         path: '/pages/details/main?id=' + article_id,
+        imageUrl: that.Article_cover,
         success: function(res) {
             // 转发成功
             console.log('转发成功')
@@ -841,6 +911,25 @@ page{
       background-color: #226abc;
     }
   }
+
+.go-home{
+    width: 100rpx;
+    height: 100rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, .2);
+    border-radius: 50%;
+    position: fixed;
+    z-index: 100;
+    bottom: 250rpx;
+    right: 30rpx;
+    img{
+        display: block;
+        width: 60%;
+        height: 60%;
+    }
+}
 
 // 跟评样式
 .comm_comment{

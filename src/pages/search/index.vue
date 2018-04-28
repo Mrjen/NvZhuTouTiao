@@ -109,7 +109,8 @@
         ArticleTtictle: '',
         popup: false,
         ArticleId:'',
-        nickName:''
+        nickName:'',
+        shareQrcode: null     //  分享二维码
       }
     },
     
@@ -189,10 +190,16 @@
         })
       },
       // 分享
-      openSharePopup(title, id){
+      async openSharePopup(title, id){
          this.popup = true;
          this.ArticleTtictle = title;
          this.ArticleId = id;
+         console.log('打开分享', api.getQrcode)
+         let shareQrcode = await wxRequest(api.getQrcode, { id: id });
+         console.log('shareQrcode', shareQrcode)
+         if(shareQrcode.data.code === api.STATUS){
+           this.shareQrcode = shareQrcode.data.data;
+         }
          wx.hideTabBar()
       },
       // 关闭分享
@@ -205,7 +212,12 @@
       downloadPoster(){
          console.log('下载海报')
          const ctx = wx.createCanvasContext('mycanvas');
-         utils.userDownloadPoster(ctx, this.ArticleTtictle,this)
+         utils.userDownloadPoster({
+            ctx:ctx,
+            title:this.ArticleTtictle,
+            that:this,
+            qrcodePath: this.shareQrcode
+        })
       },
 
       //  关键词搜索

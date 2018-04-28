@@ -74,7 +74,10 @@ const getQiNiuToken = `${domainUrl}/user/uploadtoken`;
 const systemMsgDetail = `${domainUrl}/sysmessage/sysmsgdesc`;
 
 // 跟评点赞
-const likefollowcomment = `https://nvzhu.zealcdn.cn/public/index.php/api/followcomment/likefollowcomment`;
+const likefollowcomment = `${domainUrl}/followcomment/likefollowcomment`;
+
+// 获取文章二维码
+const getQrcode = `${domainUrl}/user/qrcode`;
 
 export default {
   STATUS,
@@ -102,5 +105,6 @@ export default {
   userCommentList,
   getQiNiuToken,
   systemMsgDetail,
-  likefollowcomment
+  likefollowcomment,
+  getQrcode
 };

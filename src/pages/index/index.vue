@@ -13,44 +13,54 @@
            src="/pages/image/search.png"
            @click="toSearch()" />
     </div>
-    <view class="container">
-      <view class="topic" 
-            v-for="(item,idx) in articleList" 
-            :key="item.id">
-        <navigator class="topic_top" 
-                  :url="'../details/main?id='+ item.id">
-          <view class="topic_title">{{item.title}}</view>
-          <view class="cover-box">
-            <img class="topic_img" 
-                 mode="widthFix" 
-                 :src="item.composer_cover" />
-          </view>
-          <view class="topic_bottom">
-            <view class="readBg">
-              <view class="read">阅读</view>
-              <view class="read_time">{{item.readtimes}}</view>
-            </view>
-            <view class="read">{{item.create_time}}</view>
-          </view>
-        </navigator>
-
-        <view class="button_flex">
-          <button class="three_button"  hover-class="none" @click="openSharePopup(item.title,item.article_id)" :data-id="item.id">
-            <img src="/pages/image/share.png" class="topic_button"/>
-            <view>{{item.sharetimes}}</view>
-          </button>
-          <button class="three_button" hover-class="none" @click="toDetails(item.id)">
-            <img src="/pages/image/comment.png" class="topic_button_w" />
-            <view>{{item.commenttimes}}</view>
-          </button>
-          <button class="three_button" hover-class="none"  @click="addLike(item.likestatus, item.article_id, idx)">
-            <img v-if="item.likestatus===0" src="/pages/image/like.png" class="topic_button_o" />
-            <img v-if="item.likestatus===1" src="/pages/image/like-active.png" class="topic_button_o" />
-            <view>{{item.liketimes}}</view>
-          </button>
-        </view>
+<view class="container">
+  <view class="topic" 
+        v-for="(item,idx) in articleList" 
+        :key="item.id">
+    <navigator class="topic_top" 
+               :url="'../details/main?id='+ item.id">
+      <view class="topic_title">{{item.title}}</view>
+      <view class="cover-box">
+        <img class="topic_img" 
+             mode="widthFix" 
+             :src="item.composer_cover" />
       </view>
+      <view class="topic_bottom">
+        <view class="readBg">
+          <view class="read">阅读</view>
+          <view class="read_time">{{item.readtimes}}</view>
+        </view>
+        <view class="read">{{item.create_time}}</view>
+      </view>
+    </navigator>
+
+    <view class="button_flex">
+      <button class="three_button" 
+              hover-class="none" 
+              @click="openSharePopup(item.title,item.article_id)" 
+              :data-id="item.id">
+        <img src="/pages/image/share.png" 
+             class="topic_button" />
+        <view>{{item.sharetimes}}</view>
+      </button>
+      <button class="three_button" 
+              hover-class="none" 
+              @click="toDetails(item.id)">
+        <img src="/pages/image/comment.png" 
+             class="topic_button_w" />
+        <view>{{item.commenttimes}}</view>
+      </button>
+      <button class="three_button" 
+              hover-class="none" 
+              @click="addLike(item.likestatus, item.article_id, idx)">
+        <img v-if="item.likestatus===0" src="/pages/image/like.png" class="topic_button_o" />
+        <img v-if="item.likestatus===1" src="/pages/image/like-active.png" class="topic_button_o" />
+        <view>{{item.liketimes}}</view>
+      </button>
     </view>
+  </view>
+</view>
+
    <!--分享卡片-->
     <sharpop @openSharePopup="openSharePopup" 
              @closeSharPop="closeSharPop" 
@@ -81,7 +91,8 @@
         ArticleId:'',
         popup: false,
         ArticleTtictle:'',
-        nickName: null
+        nickName: null,
+        shareQrcode: null  // 分享海报二维码图
       };
     },
 
@@ -91,7 +102,6 @@
 
     async onLoad(options){
       let ctx = wx.createCanvasContext('mycanvas')
-      // userDownloadPoster(ctx,'测试标题测试标题测试标题测试标题',this)
        if( wx.getStorageSync('desc') ){
           this.desc = wx.getStorageSync('desc');
           console.log('this.desc ',this.desc )
@@ -135,7 +145,7 @@
         let article_id = this.ArticleId;
         return {
             title: `${nickName}邀请你一起讨论这个话题`,
-            path: '/page/details/main?id=' + article_id,
+            path: 'pages/index/main',
             success: function(res) {
               // 转发成功
               utils.shareTime(article_id)
@@ -235,10 +245,16 @@
          })
       },
       // 分享
-      openSharePopup(title, id){
+      async openSharePopup(title, id){
          this.popup = true;
          this.ArticleTtictle = title;
          this.ArticleId = id;
+         console.log('打开分享', api.getQrcode)
+         let shareQrcode = await wxRequest(api.getQrcode, { id: id });
+         console.log('shareQrcode', shareQrcode)
+         if(shareQrcode.data.code === api.STATUS){
+           this.shareQrcode = shareQrcode.data.data;
+         }
          wx.hideTabBar()
       },
       // 关闭分享
@@ -257,13 +273,15 @@
       downloadPoster(){
          console.log('下载海报')
          const ctx = wx.createCanvasContext('mycanvas');
-         utils.userDownloadPoster(ctx, this.ArticleTtictle,this)
+         utils.userDownloadPoster({
+            ctx:ctx,
+            title:this.ArticleTtictle,
+            that:this,
+            qrcodePath: this.shareQrcode
+        })
       }
     }
   };
-
-
-
 </script>
 
 <style lang="less">

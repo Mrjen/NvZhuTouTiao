@@ -20,40 +20,33 @@
         </block>
         
       </view>
+
+      <aboutMe></aboutMe>
+      
       <view class="d_fle">
-        <view class="m_r_45" @click="toLikeList">
+        <navigator class="m_r_45" @click="toLikeList" url="../likesList/main">
           <view class="myLike">{{userInfo.likeNum}}</view>
           <view class="mysetsys">点赞</view>
-        </view>
+        </navigator>
         <view>
-          <view class="myLike" @click="toComment">{{userInfo.commentNum}}</view>
+          <navigator class="myLike" url='../commList/main'>{{userInfo.commentNum}}</navigator>
           <view class="mysetsys">已评论</view>
         </view>
       </view>
     </view>
 
-    <view class="messageList readBg space_b" @tap="toMessage()">
-      <view class="readBg">
-        <image class="message" src="../image/message.png" />
-        <view class="messageTxt">我的信息</view>
-        <view class="msg-tag" v-if="userInfo.messageNum">{{userInfo.messageNum}}</view>
-      </view>
-      <image class="jump" src="../image/jump.png" />
-    </view>
 
-    <view class="messageList readBg space_b" @tap="toFeedback()">
-      <view class="readBg">
-        <image class="require" src="../image/require.png" />
-        <view class="messageTxt">意见反馈</view>
-      </view>
-      <image class="jump" src="../image/jump.png" />
-    </view>
+
+    <listItem :itemData="listData"></listItem>
+
   </div>
 </template>
 
 <script>
   import wxRequest from "../../utils/http.js";
   import api from "../../utils/api.js";
+  import listItem from './components/list-item';
+  import aboutMe from './components/about-me';
   export default {
     data() {
       return {
@@ -64,33 +57,28 @@
           comment: 20,
           like: 17
         },
-        userInfo:{}
+        userInfo:{},
+        listData:[{
+            url: '../message/main',
+            text: '我的信息',
+            iconPath: '../image/message.png',
+            msgNum: 0
+         },{
+           url: '../feedback/main',
+           text: '意见反馈',
+           iconPath: '../image/require.png',
+           msgNum: 0
+         }]
       }
     },
+    components:{
+      listItem,
+      aboutMe
+    },
     methods:{
-       toMessage(){
-        wx.navigateTo({
-          url: '../message/main'
-        })
-       },
-       toFeedback(){
-         wx.navigateTo({
-           url: '../feedback/main'
-         })
-       },
        editInfo(){
          wx.navigateTo({
            url: '../editUserInfo/main'
-         })
-       },
-       toLikeList(){
-         wx.navigateTo({
-           url: '../likesList/main'
-         })
-       },
-       toComment(){
-         wx.navigateTo({
-           url: '../commList/main'
          })
        }
     },
@@ -165,33 +153,13 @@
   .m_r_45 {
     margin-right: 45rpx;
   }
-  .message {
-    width: 34rpx;
-    height: 28rpx;
-    margin-right: 20rpx;
-  }
+
   .require {
     width: 32rpx;
     height: 32rpx;
     margin-right: 20rpx;
   }
-  .messageTxt {
-    color: #333333;
-    font-size: 30rpx;
-    flex:1;
-    width: 100%;
-  }
-  .messageList {
-    padding: 50rpx 20rpx;
-    background-color: #FFFFFF;
-    border-bottom: 1rpx solid #E5E5E5;
-    flex: 1;
-    .readBg{
-      flex: 1;
-    }
-  }
-  .jump {
-    width: 16rpx;
-    height: 25rpx;
-  }
+ 
+
+ 
 </style>

@@ -20,6 +20,8 @@ function getToken() {
         wxRequest(api.getToken, {
           code: res.code
         }).then(res => {
+          console.log("getToken()", res);
+          wx.setStorageSync('token', res.data.data.token)
           reslove(res)
         })
       }
@@ -158,82 +160,87 @@ async function shareTime(id){
 
 
   // 合成海报
-async function userDownloadPoster(ctx,title,that){
-      wx.showLoading({title:'生成中'})
-      let bg = 'https://gcdn.playonwechat.com/nvzhu/poster-bg.png'
-      const canvas_bg = await getImage(bg);
-      let userInfo = await getUserInfo();
-      let avatarUrl = userInfo.avatarUrl || "https://nvzhu.zealcdn.cn/public/img/icon.jpg";
-      ctx.drawImage(canvas_bg, 0, 0, 750, 1334)
-      // 画头像
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(80, 456, 50, 0, 2*Math.PI)
-      // ctx.setFillStyle('#ff2cff')
-      // ctx.fill();
-      ctx.clip()
-      let _avatarUrl = await getImage(avatarUrl)
-      ctx.drawImage(_avatarUrl, 30, 406, 100, 100)
-      ctx.restore()
-      
-      // 写入昵称
-      ctx.beginPath()
-      ctx.setFillStyle('#333333')
-      ctx.setFontSize(34)
-       
-      let nickName = userInfo.nickName || '匿名';
-      ctx.fillText(nickName, 150, 446)
-      ctx.save()
-      
-      ctx.beginPath()
-      ctx.setFillStyle('#999999')
-      ctx.setFontSize(30)
-      ctx.fillText('正在围观讨论这个话题', 150, 486)
+// async function userDownloadPoster(ctx,title,that){
+async function userDownloadPoster(
+  data = { ctx: null, title: "标题", that: null, qrcodePath: null }
+) {
+  wx.showLoading({ title: "生成中" });
+  let bg = "https://gcdn.playonwechat.com/nvzhu/poster-bg.png";
+  const canvas_bg = await getImage(bg);
+  let userInfo = await getUserInfo();
+  let avatarUrl =
+    userInfo.avatarUrl || "https://nvzhu.zealcdn.cn/public/img/icon.jpg";
+  data.ctx.drawImage(canvas_bg, 0, 0, 750, 1334);
+  // 画头像
+  data.ctx.save();
+  data.ctx.beginPath();
+  data.ctx.arc(80, 456, 50, 0, 2 * Math.PI);
+  // data.ctx.setFillStyle('#ff2cff')
+  // data.ctx.fill();
+  data.ctx.clip();
+  let _avatarUrl = await getImage(avatarUrl);
+  data.ctx.drawImage(_avatarUrl, 30, 406, 100, 100);
+  data.ctx.restore();
 
-      //  文字背景
-      // ctx.beginPath()
-      // ctx.setFillStyle('red')
-      // ctx.fillRect(30, 638, 614, 300)
+  // 写入昵称
+  data.ctx.beginPath();
+  data.ctx.setFillStyle("#333333");
+  data.ctx.setFontSize(34);
 
-      // 写入标题
-      ctx.beginPath()
-      ctx.setFillStyle('#000000')
-      ctx.setTextAlign('left')
-      ctx.setFontSize(60)
-      let textArr = canvasWorkBreak(550, 60, title)
-      let textH = textArr.length * 74;
-      let textMT = (300 - textH)/2 + 690;
-      console.log('textH',textH, 'textMT', textMT)
-      for(let i=0;i<textArr.length;i++){
-        ctx.fillText(textArr[i], 66, textMT +(i*74))
-      }
-      
-      // 画二维码
-      ctx.beginPath();
-      let qr_code = "https://gcdn.playonwechat.com/nvzhu/qr-code.jpg";
-      let applet_qrcode = await getImage(qr_code)
-      ctx.drawImage(applet_qrcode, 52, 1104, 200, 200)
-      ctx.draw();
-      
-      wx.canvasToTempFilePath({
-        canvasId: 'mycanvas',
-        success(res){
-           console.log('导出图片',res)
-           let image = res.tempFilePath;
-           saveImageToPhotosAlbum(image,getUserSetting(image))
-           that.popup = false;
-        },
-        fail(res){
-          console.log('失败', res)
-          utils.success('保存失败')
-          that.popup = false;
-        },
-        complete(){
-          wx.showTabBar()
-          wx.hideLoading()
-          that.inputShow = true;
-        }
-      })
+  let nickName = userInfo.nickName || "匿名";
+  data.ctx.fillText(nickName, 150, 446);
+  data.ctx.save();
+
+  data.ctx.beginPath();
+  data.ctx.setFillStyle("#999999");
+  data.ctx.setFontSize(30);
+  data.ctx.fillText("正在围观讨论这个话题", 150, 486);
+
+  //  文字背景
+  // data.ctx.beginPath()
+  // data.ctx.setFillStyle('red')
+  // data.ctx.fillRect(30, 638, 614, 300)
+
+  // 写入标题
+  data.ctx.beginPath();
+  data.ctx.setFillStyle("#000000");
+  data.ctx.setTextAlign("left");
+  data.ctx.setFontSize(60);
+  let textArr = canvasWorkBreak(550, 60, data.title);
+  let textH = textArr.length * 74;
+  let textMT = (300 - textH) / 2 + 690;
+  console.log("textH", textH, "textMT", textMT);
+  for (let i = 0; i < textArr.length; i++) {
+    data.ctx.fillText(textArr[i], 66, textMT + i * 74);
+  }
+
+  // 画二维码
+  data.ctx.beginPath();
+  // let qr_code = "https://gcdn.playonwechat.com/nvzhu/qr-code.jpg";
+  let qr_code = data.qrcodePath;
+  let applet_qrcode = await getImage(qr_code);
+  data.ctx.drawImage(applet_qrcode, 52, 1104, 200, 200);
+  data.ctx.draw();
+
+  wx.canvasToTempFilePath({
+    canvasId: "mycanvas",
+    success(res) {
+      console.log("导出图片", res);
+      let image = res.tempFilePath;
+      saveImageToPhotosAlbum(image, getUserSetting(image));
+      data.that.popup = false;
+    },
+    fail(res) {
+      console.log("失败", res);
+      utils.success("保存失败");
+      data.that.popup = false;
+    },
+    complete() {
+      wx.showTabBar();
+      wx.hideLoading();
+      data.that.inputShow = true;
+    }
+  });
 }
 
 

@@ -22,6 +22,10 @@ export default {
 
 <style>
 
+view{
+  font-size: 30rpx;
+}
+
 .space_b{
   justify-content: space-between;
 }
