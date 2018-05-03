@@ -22,7 +22,10 @@ export default {
       "pages/search/main",
       "pages/commList/main",
       "pages/likesList/main",
-      "pages/messageDetail/main"
+      "pages/messageDetail/main",
+      "pages/followers/main",
+      "pages/following/main",
+      "pages/otherUserCenter/main"
     ],
     window: {
       backgroundTextStyle: "light",

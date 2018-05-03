@@ -24,6 +24,7 @@ export default {
 
 view{
   font-size: 30rpx;
+  box-sizing: border-box;
 }
 
 .space_b{

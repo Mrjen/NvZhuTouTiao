@@ -14,51 +14,114 @@
            @click="toSearch()" />
     </div>
 <view class="container">
+  <!-- 今日话题 -->
+  <view  v-if="desc==='hot'?false:true">
+    <view v-if="newList.length>0?true:false" class="title-nav"><view class="text">今日话题</view></view>
+  </view>
+
+  <view v-if="desc==='hot'?false:true">
+  <view class="topic" 
+        v-for="(item, idx) in articleList" 
+        :key="idx">
+        <block v-if="item.form_time===todayDate?true:false">
+        <navigator class="topic_top" 
+                  :url="'../details/main?id='+ item.id">
+            <view class="topic_title">{{item.title}}</view>
+            <view class="cover-box">
+              <img class="topic_img" 
+                  mode="widthFix" 
+                  :src="item.cover"/>
+            </view>
+            <view class="topic_bottom">
+              <view class="readBg">
+                <view class="read">阅读</view>
+                <view class="read_time">{{item.readtimes}}</view>
+              </view>
+              <view class="read">{{item.create_time}}</view>
+            </view>
+        </navigator>
+        
+        <view class="button_flex">
+          <button class="three_button" 
+                  hover-class="none" 
+                  @click="openSharePopup(item.title,item.article_id)" 
+                  :data-id="item.id">
+            <img src="/pages/image/share.png" 
+                class="topic_button" />
+            <view>{{item.sharetimes}}</view>
+          </button>
+          <button class="three_button" 
+                  hover-class="none" 
+                  @click="toDetails(item.id)">
+            <img src="/pages/image/comment.png" 
+                class="topic_button_w" />
+            <view>{{item.commenttimes}}</view>
+          </button>
+          <button class="three_button" 
+                  hover-class="none" 
+                  @click="addLike(item.likestatus, item.article_id, idx)">
+            <img v-if="item.likestatus===0" src="/pages/image/like.png" class="topic_button_o" />
+            <img v-if="item.likestatus===1" src="/pages/image/like-active.png" class="topic_button_o" />
+            <view>{{item.liketimes}}</view>
+          </button>
+        </view>
+    </block>
+  </view>
+</view>
+
+<view v-if="desc==='hot'?false:true">
+    <view v-if="articleList.length>0?true:false" class="title-nav"><view class="text">往期话题</view></view>
+</view>
   <view class="topic" 
         v-for="(item,idx) in articleList" 
-        :key="item.id">
-    <navigator class="topic_top" 
-               :url="'../details/main?id='+ item.id">
-      <view class="topic_title">{{item.title}}</view>
-      <view class="cover-box">
-        <img class="topic_img" 
-             mode="widthFix" 
-             :src="item.composer_cover" />
-      </view>
-      <view class="topic_bottom">
-        <view class="readBg">
-          <view class="read">阅读</view>
-          <view class="read_time">{{item.readtimes}}</view>
+        :key="item.article_id">
+    <block v-if="item.form_time===todayDate?false:true">
+      <navigator class="topic_top" 
+                :url="'../details/main?id='+ item.id">
+        <view class="topic_title">{{item.title}}</view>
+        <view class="cover-box">
+          <img class="topic_img" 
+              mode="widthFix" 
+              :src="item.cover" />
         </view>
-        <view class="read">{{item.create_time}}</view>
-      </view>
-    </navigator>
+        <view class="topic_bottom">
+          <view class="readBg">
+            <view class="read">阅读</view>
+            <view class="read_time">{{item.readtimes}}</view>
+          </view>
+          <view class="read">{{item.create_time}}</view>
+        </view>
+      </navigator>
 
-    <view class="button_flex">
-      <button class="three_button" 
-              hover-class="none" 
-              @click="openSharePopup(item.title,item.article_id)" 
-              :data-id="item.id">
-        <img src="/pages/image/share.png" 
-             class="topic_button" />
-        <view>{{item.sharetimes}}</view>
-      </button>
-      <button class="three_button" 
-              hover-class="none" 
-              @click="toDetails(item.id)">
-        <img src="/pages/image/comment.png" 
-             class="topic_button_w" />
-        <view>{{item.commenttimes}}</view>
-      </button>
-      <button class="three_button" 
-              hover-class="none" 
-              @click="addLike(item.likestatus, item.article_id, idx)">
-        <img v-if="item.likestatus===0" src="/pages/image/like.png" class="topic_button_o" />
-        <img v-if="item.likestatus===1" src="/pages/image/like-active.png" class="topic_button_o" />
-        <view>{{item.liketimes}}</view>
-      </button>
-    </view>
+      <view class="button_flex">
+        <button class="three_button" 
+                hover-class="none" 
+                @click="openSharePopup(item.title,item.article_id)" 
+                :data-id="item.id">
+          <img src="/pages/image/share.png" 
+              class="topic_button" />
+          <view>{{item.sharetimes}}</view>
+        </button>
+        <button class="three_button" 
+                hover-class="none" 
+                @click="toDetails(item.id)">
+          <img src="/pages/image/comment.png" 
+              class="topic_button_w" />
+          <view>{{item.commenttimes}}</view>
+        </button>
+        <button class="three_button" 
+                hover-class="none" 
+                @click="addLike(item.likestatus, item.article_id, idx)">
+          <img v-if="item.likestatus===0" src="/pages/image/like.png" class="topic_button_o" />
+          <img v-if="item.likestatus===1" src="/pages/image/like-active.png" class="topic_button_o" />
+          <view>{{item.liketimes}}</view>
+        </button>
+      </view>
+    </block>
   </view>
+  <!-- 往期话题 -->
+
+
 </view>
 
    <!--分享卡片-->
@@ -80,19 +143,22 @@
   import utils from '../../utils/utils';
   import sharPop from '../../components/shareItem';
   import tips from '../../utils/tips';
-  export default {
+
+   export default {
     data() {
       return {
-        currentTab: 1,
         page: 2,
         desc: 'new',
         loadMore: true,
-        articleList: [],
         ArticleId:'',
         popup: false,
         ArticleTtictle:'',
         nickName: null,
-        shareQrcode: null  // 分享海报二维码图
+        shareQrcode: null,  // 分享海报二维码图
+        newList:[],         // 今日话题  
+        articleList:[],
+        todayDate: null,
+        is_accredit:''       // 是否授权
       };
     },
 
@@ -107,17 +173,23 @@
           console.log('this.desc ',this.desc )
        }
        let that = this;
+      // 今天日期
+      this.todayDate = utils.formatTime()
+
       const code = await utils.getToken();
       console.log('code', code)
       wx.setStorage({ key: 'token', data: code.data.data.token})
-      this.getArticle({
-        page: 1,
-        desc: this.desc,
-        token: code.data.data.token
-      }).then((res) => {
-        console.log(res)
+      this.getArticle({ page: 1, desc: this.desc, token: code.data.data.token }).then((res) => {
+        console.log('首页数据', res)
         if (res.data.code == api.STATUS) {
-          that.articleList = res.data.data;
+          this.articleList = res.data.data;
+          let newList = [];
+          res.data.data.map(el=>{
+             if(el.form_time === this.todayDate){
+                newList.push(el)
+             }
+          })
+          this.newList = newList;
         }
       })
     },
@@ -132,20 +204,33 @@
       console.log('user',userInfo)
       if(userInfo.data.code === api.STATUS){
         this.nickName = userInfo.data.data.nickName;
+        this.is_accredit = userInfo.data.data.is_accredit;
       }
     },
 
     // 分享
     onShareAppMessage(res){
         let that = this;
+        let pagePath = '';
+        if (res.from === 'button') {
+          // 来自页面内转发按钮
+          console.log(res.target)
+          pagePath = `pages/details/main?id=${this.ArticleId}`
+        }else{
+          pagePath = `pages/index/main?id=${this.ArticleId}`
+        }
+        
+        
+
         wx.showTabBar()
         that.popup = false;
         let nickName = this.nickName || '我';
         console.log('res',res)
         let article_id = this.ArticleId;
+
         return {
             title: `${nickName}邀请你一起讨论这个话题`,
-            path: 'pages/index/main',
+            path: pagePath,
             success: function(res) {
               // 转发成功
               utils.shareTime(article_id)
@@ -156,6 +241,8 @@
             }
           }
     },
+
+    
 
     async onPullDownRefresh(){
        console.log('触顶')
@@ -184,6 +271,13 @@
               if (res.data.data.length > 0) {
                 let oldList = that.articleList;
                 that.articleList = [...oldList, ...res.data.data];
+                let newList = [];
+                res.data.data.map(el=>{
+                  if(el.form_time === this.todayDate){
+                      newList.push(el)
+                  }
+                })
+                this.newList = newList;
                 that.page++;
               } else {
                 console.log('没有更多数据')
@@ -342,6 +436,33 @@
       width: 100%;
     }
   }
+
+  .title-nav{
+    width: 750rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    background: #fff;
+    margin:20rpx 0;
+    display: flex;
+    align-items: center;
+    .text{
+      position: relative;
+      box-sizing: border-box;
+      padding-left: 40rpx;
+      width: 750rpx;
+    }
+    .text:before{
+      content: '';
+      display: block;
+      border-left: 3px solid #7C48C6;
+      height: 40rpx;
+      position: absolute;
+      top: 50%;
+      margin-top: -20rpx;
+      left: 20rpx;
+    }
+  }
+  
 
   // 合成海报
   #mycanvas{

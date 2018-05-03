@@ -77,6 +77,7 @@
         this.userInfo = info.data.data;
         this.currentCity = this.userInfo.province + this.userInfo.city
         this.nickName = this.userInfo.nickName;
+        this.currentAge = info.data.data.age;
         if (info.data.data.gender === '1') {
           this.currentSex = ['男']
         } else if (info.data.data.gender === '2') {

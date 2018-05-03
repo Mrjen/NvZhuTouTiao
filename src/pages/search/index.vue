@@ -139,10 +139,10 @@
         this.nickName = userInfo.data.data.nickName;
       }
     },
-    onReachBottom() {
-      this.searchHot({
-        page: this.page
-      })
+    async onReachBottom() {
+      let result = await this.searchHot({ page: this.page })
+      let oldList = this.articleList;
+      this.articleList = [...oldList,...result];
     },
     methods: {
       //  点击更多热门
@@ -179,9 +179,11 @@
          }
       },
 
-      searchArticle(word) {
+      async searchArticle(word) {
         console.log('执行搜索')
-        this.searchHot()
+        let result = await this.searchHot();
+        console.log('执行搜索result',result)
+        this.articleList = result;
       },
       
       Hots(id){
@@ -221,9 +223,7 @@
       },
 
       //  关键词搜索
-      async searchHot(data = {
-        page: 1
-      }) {
+      async searchHot(data = { page: 1 }) {
         let keywords = await wxRequest(api.getArticleList, {
           search: this.searchWord,
           page: data.page,
@@ -232,27 +232,28 @@
         console.log('搜索结果', keywords)
         if (keywords.data.code === api.STATUS) {
           if (keywords.data.data.length > 0) {
-            let oldList = this.articleList;
-            this.articleList = [...oldList, ...keywords.data.data]
             this.page++;
+            return keywords.data.data;
           }
         } else {
           console.log('请求出错', keywords)
         }
       },
+      
       //  获取搜索历史
       async searchHostery() {
         let historyKey = await wxRequest(api.HistorySearch, {}, 'POST')
         this.historyKey = historyKey.data.data;
         console.log('搜索历史', historyKey)
       },
+
       //  获取搜索相关关键词
-      // async getKeyWordsList(e){
-      //   console.log(e)
-      //   let keyList = await wxRequest(api.searchWorld,{ search:  this.searchWord })
-      //   this.keywordsList = keyList.data.data;
-      //   console.log('相关关键词', keyList)
-      // },
+      async getKeyWordsList(e){
+        console.log(e)
+        let keyList = await wxRequest(api.searchWorld,{ search:  this.searchWord })
+        this.keywordsList = keyList.data.data;
+        console.log('相关关键词', keyList)
+      },
       async clearSearchHistory() {
         let clear = await wxRequest(api.clearSearchHistory, {}, 'POST')
         if (clear.data.code === api.STATUS) {

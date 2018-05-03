@@ -57,7 +57,7 @@
           :key="comm.id">
       <view class="display_flex space_b">
         <view class="display_flex">
-          <image :src="comm.avatarUrl" class="head_img" />
+          <image :src="comm.avatarUrl" class="head_img" @click="toUserCenter(comm.user_id)"/>
           <view class="flex_end">
 
             <view class="display_flex">
@@ -94,9 +94,21 @@
 
         </view>
       </view>
-      <view class="commentsTxt">
+      
+      <block>
+        <button class="commentsTxt" open-type="getUserInfo" 
+                @getuserinfo="getUserInfo" 
+                v-if="is_accredit=='0'?true:false">
+                   {{comm.comment}}
+                </button>
+        <view class="commentsTxt" v-else @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)">
+            {{comm.comment}}
+        </view>
+      </block>
+      
+      <!-- <view class="commentsTxt">
         {{comm.comment}}
-      </view>
+      </view> -->
       <!-- 跟评 -->
       <view class="com_comments" 
             v-if="comm.follow_comment.length>0">
@@ -106,7 +118,7 @@
 
           <view class="user-info">
             <view class="info-left">
-              <img class="info-avatar" :src="follow.avatarUrl" />
+              <img class="info-avatar" :src="follow.avatarUrl" @click="toUserCenter(follow.user_id)"/>
               <view class="info-info">
                 <view class="info-name">{{follow.nickName}}</view>
                 <view class="info-time">{{follow.create_time}}</view>
@@ -136,13 +148,25 @@
 
             </view>
           </view>
-          <view class="talker">回复
+
+         <block>
+         <button class="talker" open-type="getUserInfo" 
+                    @getuserinfo="getUserInfo" v-if="is_accredit=='0'?true:false">
+              <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
+          </button>
+
+          <view class="talker" 
+                v-else
+                @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '精彩评论二级', follow.nickName)">
+                回复
             <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
           </view>
+          </block>
+
         </view>
         <view class="otherAnswer" 
               v-if="comm.is_page" 
-              @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
+              @click="readMoreFollowComm(comm.id, cidx, '点击精彩评论查看更多')">查看更多评论</view>
         <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
       </view>
     </view>
@@ -156,7 +180,7 @@
           :key="comm.id">
       <view class="display_flex space_b">
         <view class="display_flex">
-          <image :src="comm.avatarUrl" class="head_img" />
+          <image :src="comm.avatarUrl" class="head_img"  @click="toUserCenter(comm.user_id)"/>
           <view class="flex_end">
             <view class="display_flex">
               <view class="comment_name">{{comm.nickName}}</view>
@@ -189,9 +213,16 @@
 
         </view>
       </view>
-      <view class="commentsTxt">
-        {{comm.comment}}
-      </view>
+      <block>
+        <button  class="commentsTxt" open-type="getUserInfo" 
+                @getuserinfo="getUserInfo" 
+                v-if="is_accredit=='0'?true:false">
+                   {{comm.comment}}
+                </button>
+        <view class="commentsTxt" v-else @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)">
+            {{comm.comment}}
+        </view>
+      </block>
       <!-- 跟评 -->
       <view class="com_comments" 
             v-if="comm.follow_comment.length>0">
@@ -200,7 +231,7 @@
               :key="follow.floor">
           <view class="user-info">
             <view class="info-left">
-              <img class="info-avatar" :src="follow.avatarUrl" />
+              <img class="info-avatar" :src="follow.avatarUrl"  @click="toUserCenter(follow.user_id)" />
               <view class="info-info">
                 <view class="info-name">{{follow.nickName}}</view>
                 <view class="info-time">{{follow.create_time}}</view>
@@ -229,10 +260,20 @@
 
             </view>
           </view>
-          <view class="talker">回复
+
+          <block>
+
+          <button class="talker" open-type="getUserInfo" 
+                    @getuserinfo="getUserInfo" v-if="is_accredit=='0'?true:false">
+              <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
+          </button>
+          <view class="talker"
+                v-else
+                @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '最新评论二级', follow.nickName)">回复
             <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}</view>
+         </block>
         </view>
-        <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx)">查看更多评论</view>
+        <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx, '点击最新评论查看更多')">查看更多评论</view>
         <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
       </view>
     </view>
@@ -245,13 +286,14 @@
   <!-- 评论输入 -->
   <view v-if="is_accredit=='1'?true:false" class="writeBg">
       <!-- {{is_accredit}} -->
+      <!-- v-model="commContent" -->
       <textarea  :placeholder="inputPlaceholder"
                  v-if="inputShow"
                  auto-height="true"
                  @focus="inputGetFocus"
                  fixed="true"
                  cursor-spacing="20"
-                 v-model="commContent"
+                 @input="inputComment"
                  @confirm="addComment"
                  confirm-type="send" 
                  placeholder-style="color:#999"
@@ -300,6 +342,7 @@ export default {
         comment: [],                // 最新评论内容
         inputFcus: false,           // 输入框焦点
         commContent:'',             // 评论内容
+        inputValue: '',             // 输入框的值
         id:'',                      // 评论id
         commentDom:'article',       // 评论对象 article follow
         page: 2,                    // 最新评论页数
@@ -326,7 +369,7 @@ export default {
         userInfo:{},                // 用户信息
         inputShow: true,            // 输入框是否显示
         shareQrcode: null,           // 分享二维码
-        goHome: false
+        goHome: true
       }
   },
   components: {
@@ -335,11 +378,14 @@ export default {
   },
   async onLoad(options){
       let that = this;
-      console.log('页面加载了',options)
+      console.log('页面加载了',options, this.id)
+      wx.showLoading({
+        title: '加载中'
+      })
       let _article_id = null;
       if(options.id){
-          _article_id = options.id;
-          console.log('id')
+        _article_id = options.id;
+        wx.setStorage({ key:"article_id", data: options.id})
       }else if(options.scene){
           _article_id = options.scene;
           console.log('scene')
@@ -376,13 +422,37 @@ export default {
     const userInfo = await wxRequest(api.getUserInfo,{},'POST')
     console.log('请求is_accredit', userInfo)
     this.is_accredit = userInfo.data.data.is_accredit;
+    wx.hideLoading()
+  },
+  async onShow(){
+      console.log('onShow')
+      if(this.id===wx.getStorageSync('article_id')){
+         console.log('相等')
+      }
+       this.commentDom = 'article';
+
+      let userInfo = await wxRequest(api.getUserInfo,{},'POST')
+      this.inputShow = true;
+      console.log('user',userInfo)
+      if(userInfo.data.code === api.STATUS){
+        this.nickName = userInfo.data.data.nickName;
+      }
   },
   onUnload(){
       console.log('隐藏了')
       this.inputFcus = false;
       this.ArticleContent = '';
+      this.inputPlaceholder = '发表你的观点';
   },
   methods:{
+    //   输入评论
+    inputComment(e){
+       console.log(e)
+       this.commContent = e.mp.detail.value;
+       setTimeout(()=>{
+           this.commContent = '';
+       },50)
+    },
       // 返回首页
     goHomego(){
         console.log(111)
@@ -517,16 +587,19 @@ export default {
              }
          }
          this.inputFcus = false;
+         this.inputValue = '';
          console.log('follow', follow)
     },
     //   评论文章
     async commentArticle(){
         this.inputPlaceholder = '发表你的观点';
+        console.log('评论文章11111')
        let comm = await wxRequest(api.addComment,{ article_id: this.id, comment: this.commContent });
        if(comm.data.code === api.STATUS){
            this.commContent = '';
            tips.success('评论成功')
            this.inputFcus = false;
+           this.inputValue = '';
            this.comment = comm.data.data.list;
        }
        console.log('comm', comm)
@@ -565,7 +638,8 @@ export default {
         console.log('增加分享次数', share)
     },
     // 查看更多评论
-    async readMoreFollowComm(id,idx){
+    async readMoreFollowComm(id,idx, text){
+        console.log('点击更多评论', id, idx, text)
       this.follow_index = idx;
       this.inputFcus = false;
       let page = this.follow_page;
@@ -574,18 +648,28 @@ export default {
       }
     //   if(page ===1) this.comment[idx].follow_comment = [];
       this.follow_id = id;
+      console.log('点击更多评论this.follow_page', this.follow_page)
       let more = await wxRequest(api.followWommentList, { comment_id: id, page_size: 10, page: this.follow_page, sort:'desc' })
       if(more.data.code === api.STATUS){
-          let _comment = this.comment;
+          let _comment = [];
           if(more.data.data.list.length){
-            if(page===1) more.data.data.list.splice(0,2);
-             _comment[idx].follow_comment = [..._comment[idx].follow_comment,...more.data.data.list];
+           if(page===1) more.data.data.list.splice(0,2);
+            if(text==='点击精彩评论查看更多'){
+                _comment = this.topComment;
+                _comment[idx].follow_comment = [..._comment[idx].follow_comment,...more.data.data.list];
+                this.topComment = _comment;
+            }else if(text==='点击最新评论查看更多'){
+                _comment = this.comment;
+                _comment[idx].follow_comment = [..._comment[idx].follow_comment,...more.data.data.list];
+                this.comment = _comment;
+            }
+             console.log(_comment[idx].follow_comment)
              
              this.follow_page++;
           }else{
              _comment[idx].is_page = false;
           }
-          this.comment = _comment;
+          console.log(this.comment)
       }
     },
     // 追加评论点赞
@@ -653,6 +737,13 @@ export default {
             this.inputGetFocus = true;
             console.log('this.inputGetFocus', this.inputGetFocus)
         }
+    },
+    // 去用户中心
+    toUserCenter(id){
+        console.log('用户id', id)
+       wx.navigateTo({
+         url: `../otherUserCenter/main?id=${id}`
+       })
     }
   },
 
@@ -690,15 +781,6 @@ export default {
     //  tips.success('刷新成功')
   },
 
-  async onShow(){
-      console.log('onShow')
-      let userInfo = await wxRequest(api.getUserInfo,{},'POST')
-      this.inputShow = true;
-      console.log('user',userInfo)
-      if(userInfo.data.code === api.STATUS){
-        this.nickName = userInfo.data.data.nickName;
-      }
-},
 
   onShareAppMessage(){
       let that = this;
@@ -733,6 +815,7 @@ page{
     box-sizing: border-box;
     margin-bottom: 50rpx;
     position: relative;
+    text-align: center;
 }
 
 
@@ -828,6 +911,10 @@ page{
     color: #333333;
     font-size: 28rpx;
     margin: 30rpx 13rpx 30rpx 97rpx;
+    padding: 0;
+    background: transparent;
+    text-align: left;
+    line-height: 40rpx;
 }
 
 .font_24{
@@ -979,6 +1066,8 @@ page{
     }
     .talker{
         text-align: justify;
+        line-height: 40rpx;
+        font-size: 28rpx;
         text{
           color: #793292;
         }

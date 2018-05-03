@@ -7,7 +7,11 @@
             <view v-if="userInfo.nickName?true:false" class="myCenterName">{{userInfo.nickName}}</view>
             <view v-else class="myCenterName"><open-data type="userNickName"></open-data></view>
           </block>
-          <image class="gender mg_15" :src="people.gender==0?'../image/girl.png':'../image/boy.png'" />
+          <block>
+             <image v-if="userInfo.gender==2?true:false" class="gender mg_15" src="../image/girl.png" />
+             <image v-if="userInfo.gender==1?true:false" class="gender mg_15" src="../image/boy.png"/>
+          </block>
+          
         </view>
         <block>
             <image v-if="userInfo.avatarUrl?true:false" 
@@ -20,24 +24,13 @@
         </block>
         
       </view>
-
-      <aboutMe></aboutMe>
-      
-      <view class="d_fle">
-        <navigator class="m_r_45" @click="toLikeList" url="../likesList/main">
-          <view class="myLike">{{userInfo.likeNum}}</view>
-          <view class="mysetsys">点赞</view>
-        </navigator>
-        <view>
-          <navigator class="myLike" url='../commList/main'>{{userInfo.commentNum}}</navigator>
-          <view class="mysetsys">已评论</view>
-        </view>
-      </view>
+    
     </view>
 
+<!-- 和我相关 -->
+      <aboutMe :listNav="listNav"></aboutMe>
 
-
-    <listItem :itemData="listData"></listItem>
+      <listItem :itemData="listData"></listItem>
 
   </div>
 </template>
@@ -68,7 +61,24 @@
            text: '意见反馈',
            iconPath: '../image/require.png',
            msgNum: 0
-         }]
+         }],
+        listNav:[{
+          url:'../likesList/main',
+          num:'0',
+          text:'点赞'
+        },{
+          url:'../commList/main',
+          num:'0',
+          text:'评论'
+        },{
+          url:'../following/main',
+          num:'0',
+          text:'关注'
+        },{
+          url:'../followers/main',
+          num:'0',
+          text:'粉丝'
+        }]
       }
     },
     components:{
@@ -86,6 +96,8 @@
         let info = await wxRequest(api.getUserInfo,{},'POST');
         if(info.data.code === api.STATUS){
           this.userInfo = info.data.data;
+          this.listNav[0].num = info.data.data.likeNum;
+          this.listNav[1].num = info.data.data.commentNum;
         }
         console.log('info',info)
     },
@@ -102,8 +114,7 @@
   .myCenter {
     background-color: #7C48C6;
     color: #FFFFFF;
-    padding: 60rpx 60rpx 44rpx 60rpx;
-    margin-bottom: 10rpx;
+    padding: 60rpx 60rpx 20rpx 60rpx;
   }
   .myCenterImg {
     width: 150rpx;
