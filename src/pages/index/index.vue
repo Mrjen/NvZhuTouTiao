@@ -44,7 +44,7 @@
         <view class="button_flex">
           <button class="three_button" 
                   hover-class="none" 
-                  @click="openSharePopup(item.title,item.article_id)" 
+                  @click="openSharePopup(item.title,item.article_id, idx)" 
                   :data-id="item.id">
             <img src="/pages/image/share.png" 
                 class="topic_button" />
@@ -96,7 +96,7 @@
       <view class="button_flex">
         <button class="three_button" 
                 hover-class="none" 
-                @click="openSharePopup(item.title,item.article_id)" 
+                @click="openSharePopup(item.title,item.article_id, idx)" 
                 :data-id="item.id">
           <img src="/pages/image/share.png" 
               class="topic_button" />
@@ -154,11 +154,12 @@
         popup: false,
         ArticleTtictle:'',
         nickName: null,
-        shareQrcode: null,  // 分享海报二维码图
-        newList:[],         // 今日话题  
+        shareQrcode: null,         // 分享海报二维码图
+        newList:[],                // 今日话题  
         articleList:[],
         todayDate: null,
-        is_accredit:''       // 是否授权
+        is_accredit: '',          // 是否授权
+        currentSahreCover: null   // 当前分享文章封面
       };
     },
 
@@ -212,12 +213,15 @@
     onShareAppMessage(res){
         let that = this;
         let pagePath = '';
+        let currentSahreCover = '';
         if (res.from === 'button') {
           // 来自页面内转发按钮
           console.log(res.target)
-          pagePath = `pages/details/main?id=${this.ArticleId}`
+          pagePath = `pages/details/main?id=${this.ArticleId}`;
+          currentSahreCover = this.currentSahreCover;
         }else{
-          pagePath = `pages/index/main?id=${this.ArticleId}`
+          pagePath = `pages/index/main?id=${this.ArticleId}`;
+          currentSahreCover = '';
         }
         
         
@@ -231,6 +235,7 @@
         return {
             title: `${nickName}邀请你一起讨论这个话题`,
             path: pagePath,
+            imageUrl:currentSahreCover,
             success: function(res) {
               // 转发成功
               utils.shareTime(article_id)
@@ -339,10 +344,12 @@
          })
       },
       // 分享
-      async openSharePopup(title, id){
+      async openSharePopup(title, id, idx){
+        console.log(title,id,idx)
          this.popup = true;
          this.ArticleTtictle = title;
          this.ArticleId = id;
+         this.currentSahreCover = this.articleList[idx].sharcover;
          console.log('打开分享', api.getQrcode)
          let shareQrcode = await wxRequest(api.getQrcode, { id: id });
          console.log('shareQrcode', shareQrcode)

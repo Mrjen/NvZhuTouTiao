@@ -70,15 +70,17 @@
           url:'../commList/main',
           num:'0',
           text:'评论'
-        },{
-          url:'../following/main',
-          num:'0',
-          text:'关注'
-        },{
-          url:'../followers/main',
-          num:'0',
-          text:'粉丝'
-        }]
+        }
+        // ,{
+        //   url:'../following/main',
+        //   num:'0',
+        //   text:'关注'
+        // },{
+        //   url:'../followers/main',
+        //   num:'0',
+        //   text:'粉丝'
+        // }
+        ]
       }
     },
     components:{

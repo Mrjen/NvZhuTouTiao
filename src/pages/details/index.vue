@@ -51,7 +51,7 @@
   <!-- 精彩评论 -->
   <view class="comments" 
         v-if="topComment.length>0?true:false">
-    <view class="wonderfulComments">精彩评论</view>
+    <view class="wonderfulComments"><text>精彩评论</text><text v-if="topComment.length>0?true:false" class="wrtie-comment" @click="openArticleComm">发表评论</text></view>
     <view class="commentsConter" 
           v-for="(comm,cidx) in topComment" 
           :key="comm.id">
@@ -112,7 +112,7 @@
       <!-- 跟评 -->
       <view class="com_comments" 
             v-if="comm.follow_comment.length>0">
-        <view class="font_24 border_bottom" 
+        <view class="font_24 border_bottom last-noborder" 
               v-for="(follow, fidx) in comm.follow_comment" 
               :key="follow.floor">
 
@@ -167,14 +167,14 @@
         <view class="otherAnswer" 
               v-if="comm.is_page" 
               @click="readMoreFollowComm(comm.id, cidx, '点击精彩评论查看更多')">查看更多评论</view>
-        <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
+        <view class="otherAnswer" v-if="!comm.is_page&&comm.follow_comment.length>2" @click="collapseComment(cidx,'收起精彩评论')">收起评论</view>
       </view>
     </view>
   </view>
 
   <!-- 最新评论 -->
   <view class="comments" v-if="comment.length>0?true:false">
-    <view class="wonderfulComments">最新评论</view>
+    <view class="wonderfulComments"><text>最新评论</text><text v-if="topComment.length>0?false:true" class="wrtie-comment" @click="openArticleComm">发表评论</text></view>
     <view class="commentsConter" 
           v-for="(comm, cidx) in comment" 
           :key="comm.id">
@@ -226,7 +226,7 @@
       <!-- 跟评 -->
       <view class="com_comments" 
             v-if="comm.follow_comment.length>0">
-        <view class="font_24 border_bottom" 
+        <view class="font_24 border_bottom last-noborder" 
               v-for="(follow, fidx) in comm.follow_comment" 
               :key="follow.floor">
           <view class="user-info">
@@ -274,7 +274,7 @@
          </block>
         </view>
         <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx, '点击最新评论查看更多')">查看更多评论</view>
-        <!-- <view class="otherAnswer" v-if="!comm.is_page">没有更多评论</view> -->
+        <view class="otherAnswer" v-if="!comm.is_page&&comm.follow_comment.length>2" @click="collapseComment(cidx,'收起最新评论')">收起评论</view>
       </view>
     </view>
   </view>
@@ -287,6 +287,7 @@
   <view v-if="is_accredit=='1'?true:false" class="writeBg">
       <!-- {{is_accredit}} -->
       <!-- v-model="commContent" -->
+      <!-- @focus="inputGetFocus" -->
       <textarea  :placeholder="inputPlaceholder"
                  v-if="inputShow"
                  auto-height="true"
@@ -294,6 +295,8 @@
                  fixed="true"
                  cursor-spacing="20"
                  @input="inputComment"
+                 :value="inputValue"
+                 :cursor="inputCursor"
                  @confirm="addComment"
                  confirm-type="send" 
                  placeholder-style="color:#999"
@@ -342,6 +345,7 @@ export default {
         comment: [],                // 最新评论内容
         inputFcus: false,           // 输入框焦点
         commContent:'',             // 评论内容
+        inputCursor:-1,             // 输入框光标位置
         inputValue: '',             // 输入框的值
         id:'',                      // 评论id
         commentDom:'article',       // 评论对象 article follow
@@ -409,9 +413,8 @@ export default {
       this.Article_sharetimes = detail.data.data.sharetimes;
       this.Article_comments = detail.data.data.commenttimes;
       this.Article_likestatus = detail.data.data.likestatus;
-      
       wx.downloadFile({
-          url: detail.data.data.composer_cover,
+          url: detail.data.data.sharcover,
           success(res){
               console.log('封面', res)
               that.Article_cover = res.tempFilePath
@@ -449,9 +452,12 @@ export default {
     inputComment(e){
        console.log(e)
        this.commContent = e.mp.detail.value;
+       this.inputValue = e.mp.detail.value;
        setTimeout(()=>{
-           this.commContent = '';
-       },50)
+           this.inputCursor = e.mp.detail.cursor;
+           console.log('光标的位置', this.inputCursor)
+       },20)
+       
     },
       // 返回首页
     goHomego(){
@@ -467,14 +473,19 @@ export default {
     openArticleComm() {
        console.log('评论文章')
        this.inputPlaceholder = '发表你的观点';
-       this.inputFcus = true;
+       this.inputGetFocus();
        this.commentDom = 'article';
        this.page = 2;
     },
     // input获取焦点
     inputGetFocus(){
         console.log('获取焦点了')
-        this.inputFcus = true;
+        if(this.inputFcus){
+           this.inputFcus = false;
+         }
+        setTimeout(()=>{
+            this.inputFcus = true;
+        },20)
     },
     // input失去焦点
     inputBlur(){
@@ -483,7 +494,7 @@ export default {
     // 点击跟评图标
     followComment(id){
        this.id = id;
-       this.inputFcus = true;
+       this.inputGetFocus();
        this.commentDom = 'follow';
     },
     // 喜欢文章
@@ -499,11 +510,28 @@ export default {
           }
       }
     },
+    // 收起评论
+    collapseComment(idx,text){
+       let _comment = [];
+       if(text==='收起精彩评论'){
+           _comment = this.topComment;
+           _comment[idx].follow_comment = _comment[idx].follow_comment.slice(0,2);
+           _comment[idx].is_page = true;
+           this.follow_page = 1;
+           this.topComment = _comment;
+       }else if(text==='收起最新评论'){
+           _comment = this.comment;
+           _comment[idx].follow_comment = _comment[idx].follow_comment.slice(0,2);
+           _comment[idx].is_page = true;
+           this.follow_page = 1;
+           this.comment = _comment;
+       }
+    },
     // 点击追评图标
     followCommentComment(id, idx, user_id, type, nickName){
         console.log('点击一级追评图标', id, idx, user_id, type, nickName)
        this.commentDom = 'follow';
-       this.inputFcus = true;
+       this.inputGetFocus();
        this.id = id;
        this.commentIdx = idx;
        this.comment_id = id;
@@ -514,7 +542,7 @@ export default {
     // 追评添加追评
     async followFollowComment(user_id, comment_id, fidx, cidx, type, nickName){
         console.log('点击二级评论', user_id, comment_id, fidx, cidx, type, nickName)
-        this.inputFcus = true;
+        this.inputGetFocus();
         this.user_id = user_id;
         this.commentDom = 'follow';
         this.comment_id = comment_id;
@@ -525,7 +553,7 @@ export default {
     },
     // 提交评论
     async addComment(){
-        console.log('评论', this.commContent)
+        console.log('评论发送了', this.commContent)
        if(!this.commContent) return;
        if(this.commentDom === 'article'){
             console.log('评论文章')
@@ -593,7 +621,7 @@ export default {
     //   评论文章
     async commentArticle(){
         this.inputPlaceholder = '发表你的观点';
-        console.log('评论文章11111')
+        console.log('评论文章')
        let comm = await wxRequest(api.addComment,{ article_id: this.id, comment: this.commContent });
        if(comm.data.code === api.STATUS){
            this.commContent = '';
@@ -646,30 +674,27 @@ export default {
       if(this.follow_id!==id){
           this.follow_page = 1;
       }
-    //   if(page ===1) this.comment[idx].follow_comment = [];
       this.follow_id = id;
-      console.log('点击更多评论this.follow_page', this.follow_page)
+      console.log('点击更多评论')
       let more = await wxRequest(api.followWommentList, { comment_id: id, page_size: 10, page: this.follow_page, sort:'desc' })
       if(more.data.code === api.STATUS){
-          let _comment = [];
-          if(more.data.data.list.length){
-           if(page===1) more.data.data.list.splice(0,2);
+            let _comment = [];
+            if(page===1) more.data.data.list.splice(0,2);  // 删除评论前两条
             if(text==='点击精彩评论查看更多'){
                 _comment = this.topComment;
                 _comment[idx].follow_comment = [..._comment[idx].follow_comment,...more.data.data.list];
+                if(!more.data.data.length){ _comment[idx].is_page = false }   // 隐藏查看更多评论
                 this.topComment = _comment;
             }else if(text==='点击最新评论查看更多'){
                 _comment = this.comment;
                 _comment[idx].follow_comment = [..._comment[idx].follow_comment,...more.data.data.list];
+                if(!more.data.data.length){ _comment[idx].is_page = false }  // 隐藏查看更多评论
                 this.comment = _comment;
             }
-             console.log(_comment[idx].follow_comment)
+             if(more.data.data.length){
+                 this.follow_page++;
+             }
              
-             this.follow_page++;
-          }else{
-             _comment[idx].is_page = false;
-          }
-          console.log(this.comment)
       }
     },
     // 追加评论点赞
@@ -698,6 +723,7 @@ export default {
     },
     // 分享
     async openSharePopup(title, id){
+        wx.hideTabBar()
         this.popup = true;
         this.ArticleTtictle = title;
         this.ArticleId = id;
@@ -707,7 +733,6 @@ export default {
          if(shareQrcode.data.code === api.STATUS){
            this.shareQrcode = shareQrcode.data.data;
          }
-        wx.hideTabBar()
     },
     // 关闭分享
     closeSharPop(){
@@ -851,9 +876,18 @@ page{
     font-size: 30rpx;
     font-weight: bold;
     color: #333333;
-    padding-left: 35rpx;
-    padding-bottom: 30rpx;
-    padding-top: 30rpx;
+    padding:30rpx 35rpx;
+    display: flex;
+    justify-content: space-between;
+    text{
+        display: inline-block;
+    }
+    .wrtie-comment{
+        font-size: 30rpx;
+        font-weight: normal;
+        color: #226abc;
+        display: inline-block;
+    }
 }
 .commentsConter{
     padding: 30rpx;
@@ -1048,6 +1082,9 @@ page{
         left: 0;
         bottom: 0;
         position: absolute;
+    }
+    .last-noborder:nth-last-of-type(1):after{
+        display: none;
     }
     .info-avatar{
         width: 50rpx;

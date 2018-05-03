@@ -23,26 +23,8 @@ export default {
     listNav:{
       type:Array,
       default:function(){
-      return [{
-        url:'../likesList/main',
-        num:'0',
-        text:'点赞'
-      },{
-        url:'../commList/main',
-        num:'0',
-        text:'评论'
-      }
-      // ,{
-      //   url:'../following/main',
-      //   num:'0',
-      //   text:'关注'
-      // },{
-      //   url:'../followers/main',
-      //   num:'0',
-      //   text:'粉丝'
-      // }
-      ]
-    }
+      return []
+     }
     },
     
   },
