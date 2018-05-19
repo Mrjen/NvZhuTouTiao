@@ -3,7 +3,7 @@
   <view v-if="likeList.length?true:false">
     <view v-for="(item, idx) in likeList" :key="item.cover">
       <view class="list-item">
-         <likeItem :itemData="item"></likeItem>
+         <likeItem :itemData="item" @toDetail="toDetail"></likeItem>
       </view>
     </view>
   </view>

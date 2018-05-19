@@ -2,25 +2,25 @@
   <div class="info">
     <!-- 资料 -->
       <view class="user-info">
-         <view class="nickName">
-           <view class="info-name">小恶魔</view>
-           <image class="avatar-sex" src="../image/boy.png"></image>
-         </view>
-         <image class="avatar" src="http://iph.href.lu/150x150"></image>
+        <view class="nick-name">
+           <view class="info-name">{{userData.nickName}}</view>
+           <image v-if="userData.gender=='0'" class="avatar-sex" src="../image/girl.png"></image>
+           <image v-else-if="userData.gender=='1'" class="avatar-sex" src="../image/boy.png"></image>
+        </view>
+           <img class="avatar" :src="userData.avatarUrl" alt="">
       </view>
       <!-- 关于他的 -->
       <view class="about-he">
-          <navigator url="">
-             <view class="num">17</view>
+          <navigator :url="'/pages/following/main?user_id='+ userId +'&nav_title=Ta的关注'">
+             <view class="num">{{userData.attentionNum}}</view>
              <view class="tag">关注</view>
           </navigator>
-          <navigator url="">
-             <view class="num">20</view>
+          <navigator :url="'/pages/followers/main?user_id='+ userId +'&nav_title=Ta的粉丝'">
+             <view class="num">{{userData.followerNum}}</view>
              <view class="tag">粉丝</view>
           </navigator>
       </view>
 
-      <!-- 导航切换 -->
        
   </div>
 </template>
@@ -29,6 +29,17 @@
 export default {
   data(){
     return{}
+  },
+  props:{
+    userData:{},
+    userId:''
+  },
+  created(){
+    console.log('创建了')
+  },
+  onLoad(){
+    console.log('this.userData', this.userData)
+    console.log('this.userId', this.userId)
   }
 }
 </script>
@@ -45,7 +56,7 @@ export default {
     justify-content: space-between;
     align-items: flex-start;
   }
-  .nickName{
+  .nick-name{
     display: flex;
     align-items: flex-end;
   }
@@ -54,6 +65,11 @@ export default {
     font-size: 36rpx;
     margin-right: 10rpx;
     line-height: 1;
+  }
+  .avatar{
+    width: 150rpx;
+    height: 150rpx;
+    border-radius: 50%;
   }
   .avatar-sex{
     width: 24rpx;
@@ -84,3 +100,5 @@ export default {
   }
 }
 </style>
+
+

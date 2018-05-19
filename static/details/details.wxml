@@ -1,0 +1,6 @@
+<view class="main">
+   <!-- 文章区域 -->
+   <view class="article">
+       <view class="title"></view>
+   </view>
+</view>

@@ -44,7 +44,7 @@ async function getUserInfo() {
     wxRequest(api.getUserInfo,{},'POST').then(res=>{
         if(res.data.code === api.STATUS){
             resolve(res.data.data)
-          }
+        }
     })
   })
 }
@@ -57,7 +57,6 @@ function getToken() {
         wxRequest(api.getToken, {
           code: res.code
         }).then(res => {
-          console.log("getToken()", res);
           wx.setStorageSync('token', res.data.data.token)
           reslove(res)
         })
@@ -237,19 +236,48 @@ async function userDownloadPoster(
   // data.ctx.beginPath()
   // data.ctx.setFillStyle('red')
   // data.ctx.fillRect(30, 638, 614, 300)
+  
 
   // 写入标题
   data.ctx.beginPath();
   data.ctx.setFillStyle("#000000");
   data.ctx.setTextAlign("left");
   data.ctx.setFontSize(60);
-  let textArr = canvasWorkBreak(550, 60, data.title);
+  let textArr = canvasWorkBreak(550, 60,' ' + data.title);
+  console.log('textArr',textArr);
+  // let anOther = textArr[0];
+  // // textArr.shift();
+
   let textH = textArr.length * 74;
   let textMT = (300 - textH) / 2 + 690;
   console.log("textH", textH, "textMT", textMT);
+
+  // 画左边冒号
+  data.ctx.beginPath()
+  let leftMH = await getImage('https://gcdn.playonwechat.com/nvzhuleft-maohao.png');
+  data.ctx.drawImage(leftMH, 30+100, textMT-80, 48,34)
+
+  
   for (let i = 0; i < textArr.length; i++) {
-    data.ctx.fillText(textArr[i], 66, textMT + i * 74);
+    if(i===0){
+      data.ctx.fillText(textArr[i], 66 + 120, textMT + i * 74);
+    }else{
+      data.ctx.fillText(textArr[i], 66, textMT + i * 74);
+    }
   }
+
+  let lastItemLen = textArr[textArr.length-1].length;
+  console.log('lastItemLen', lastItemLen)
+
+  // 画右边冒号
+  data.ctx.beginPath()
+  let leftRH = await getImage('https://gcdn.playonwechat.com/nvzhuright-maohao.png');
+  // if(textArr.length===1){
+  //   data.ctx.drawImage(leftRH, 30 + lastItemLen*60 + 170, 600 + textArr.length * 90 + 40, 48,34)
+  // }else{
+    data.ctx.drawImage(leftRH, 30 + lastItemLen*60 + 80, 600 + textArr.length * 90 + 20, 48,34)
+  // }
+  
 
   // 画二维码
   data.ctx.beginPath();

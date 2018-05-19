@@ -48,13 +48,13 @@
   import api from "../../utils/api.js";
   import qiniuUploader from '../../utils/qiniuUploader';
   import tips from '../../utils/tips';
-  // var QQMapWX = require('../../utils/qqmap-wx-jssdk.min.js');
+
   export default {
     data() {
       return {
         userInfo: {},
         cityArray: '',
-        sexArray: ['未知','男', '女'],
+        sexArray: ['保密','男', '女'],
         currentSex: ['男'],
         currentCity: ['请选择'],
         ageArray: [''],
@@ -70,6 +70,7 @@
       for (let i = 0, len = 100; i < len; i++) {
         arr.push(i)
       }
+      arr[0] = '保密';
       this.ageArray = arr;
       let info = await wxRequest(api.getUserInfo, {}, 'POST')
       if (info.data.code === api.STATUS) {
@@ -77,11 +78,15 @@
         this.userInfo = info.data.data;
         this.currentCity = this.userInfo.province + this.userInfo.city
         this.nickName = this.userInfo.nickName;
-        this.currentAge = info.data.data.age;
+        this.currentAge = info.data.data.age=='0'?'保密':info.data.data.age;
+        console.log('info.data.data.gender',info.data.data.gender)
         if (info.data.data.gender === '1') {
           this.currentSex = ['男']
         } else if (info.data.data.gender === '2') {
           this.currentSex = ['女']
+        } else if(info.data.data.gender === '0'){
+          this.currentSex = ['保密']
+          console.log('保密')
         }
       }
     },

@@ -79,6 +79,21 @@ const likefollowcomment = `${domainUrl}/followcomment/likefollowcomment`;
 // 获取文章二维码
 const getQrcode = `${domainUrl}/user/qrcode`;
 
+// 获取关注列表
+const followingList = `${domainUrl}/attention/attentionlist`
+
+// 取消关注
+const delattention = `${domainUrl}/attention/delattention`
+
+// 粉丝列表
+const followerlist = `${domainUrl}/attention/followerlist`
+
+// 判断我是否关注ta
+const isattention = `${domainUrl}/attention/isattention`
+
+// 添加关注
+const createattention = `${domainUrl}/attention/createattention`
+
 export default {
   STATUS,
   domainUrl,
@@ -106,5 +121,10 @@ export default {
   getQiNiuToken,
   systemMsgDetail,
   likefollowcomment,
-  getQrcode
+  getQrcode,
+  followingList,
+  delattention,
+  followerlist,
+  isattention,
+  createattention
 };

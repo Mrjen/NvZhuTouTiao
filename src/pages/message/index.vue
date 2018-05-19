@@ -1,6 +1,6 @@
 <template>
   <div class="message">
-    <view v-if="msgList.length?true:false">
+    <!-- <view v-if="msgList.length?true:false">
         <view class="msg-box" 
             v-for="(item,idx) in msgList" 
             :key="item.create_time">
@@ -19,11 +19,20 @@
         </view>
         <view class="delete" @click="deleteMsg(item.id, idx)">删除</view>
       </view>
+    </view> -->
+    
+    <!-- 导航 -->
+    <view class="nav">
+      <form v-for="(item,idx) in nav" :key="item.id" report-submit="true" bindsubmit="changeNav">
+         <button class="btn-item" 
+         :class="{active:item.active}" formType="submit">{{item.text}}</button>
+      </form>
     </view>
+
      
-    <view v-else class="none-more">
+    <!-- <view v-else class="none-more">
        暂无数据
-    </view>
+    </view> -->
     
   </div>
 </template>
@@ -37,7 +46,18 @@ export default {
        page: 2,
        msgList:[],
        startX: 0,
-       delBtnWidth: 120
+       delBtnWidth: 120,
+       nav:[{
+        id: '1',
+        tag: 'notice',
+        text: '通知',
+        active: true
+      },{
+        id: '2',
+        tag: 'chart',
+        text: '私聊',
+        active: false
+      }]
     }
   },
   async onShow(){

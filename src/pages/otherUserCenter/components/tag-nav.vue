@@ -37,6 +37,7 @@ export default {
       })
       nav[idx].active = true;
       this.nav = nav;
+      this.$emit('changeTagNav',idx)
     }
   }
 }

@@ -70,16 +70,15 @@
           url:'../commList/main',
           num:'0',
           text:'评论'
+        },{
+          url:'../following/main',
+          num:'0',
+          text:'关注'
+        },{
+          url:'../followers/main',
+          num:'0',
+          text:'粉丝'
         }
-        // ,{
-        //   url:'../following/main',
-        //   num:'0',
-        //   text:'关注'
-        // },{
-        //   url:'../followers/main',
-        //   num:'0',
-        //   text:'粉丝'
-        // }
         ]
       }
     },
@@ -98,8 +97,13 @@
         let info = await wxRequest(api.getUserInfo,{},'POST');
         if(info.data.code === api.STATUS){
           this.userInfo = info.data.data;
-          this.listNav[0].num = info.data.data.likeNum;
-          this.listNav[1].num = info.data.data.commentNum;
+          let _info = info.data.data;
+          this.listNav[0].num = _info.likeNum;
+          this.listNav[1].num = _info.commentNum;
+          this.listNav[2].num = _info.attentionNum;
+          this.listNav[3].num = _info.followerNum;
+          this.listNav[2].url = `../following/main?user_id=${_info.id}`
+          console.log('this.listNav',this.listNav)
         }
         console.log('info',info)
     },

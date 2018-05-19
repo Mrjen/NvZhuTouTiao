@@ -8,10 +8,11 @@ export default {
     // console.log('app created and cache logs by setStorageSync')
   },
   async onLaunch(){
-    // console.log('小程序加载了')
     wx.login({
       success(res){
          wxRequest(api.getToken,{code:res.code}).then((res)=>{
+          //  console.log('获取token', res)
+          wx.setStorage({ key:'myid',data:res.data.data.id })
           wx.setStorage({ key:'token',data: res.data.data.token})
         })
       }
@@ -20,7 +21,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
 
 view{
   font-size: 30rpx;
@@ -171,7 +172,7 @@ button::after{
 
 .writeBg{
     position:fixed;
-    bottom:0rpx;
+    bottom:300rpx;
     left: 0;
     right: 0;
     background-color:#fff;

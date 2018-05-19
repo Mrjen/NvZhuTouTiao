@@ -14,7 +14,6 @@ export default {
     pages: [
       "^pages/index/main",
       "pages/editUserInfo/main",
-      "pages/chatRoom/main",
       "pages/details/main",
       "pages/feedback/main",
       "pages/message/main",
@@ -25,7 +24,8 @@ export default {
       "pages/messageDetail/main",
       "pages/followers/main",
       "pages/following/main",
-      "pages/otherUserCenter/main"
+      "pages/otherUserCenter/main",
+      "static/details/details",
     ],
     window: {
       backgroundTextStyle: "light",
@@ -34,7 +34,7 @@ export default {
       navigationBarTextStyle: "white",
       enablePullDownRefresh: true,
       backgroundColor: "#e9e9e9",
-      onReachBottomDistance: 250
+      onReachBottomDistance: 100
     },
     tabBar: {
       color: "#333333",

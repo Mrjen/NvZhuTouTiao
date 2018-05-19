@@ -1,6 +1,27 @@
 <template>
   <div class="home">
-    <div class="topBar">
+
+    <view class="topBar" :style="'margin-bottom:' + desc==='hot'?'20rpx':''">
+      <view class="readBg">
+        <form @submit="changeNav" data-val="new" report-submit="true">
+           <button formType="submit" class="article-btn">
+               <view class="topNew topNew1" :class="desc==='new'?'active':''" >最新</view>
+           </button>
+        </form>
+
+        <form @submit="changeNav" data-val="hot" report-submit="true">
+           <button formType="submit" class="article-btn">
+               <view class="topNew topNew1" :class="desc==='hot'?'active':''" >最热</view>
+           </button>
+        </form>
+        
+      </view>
+      <image class="searchButton" 
+           src="/pages/image/search.png"
+           @tap="toSearch()"/>
+    </view>
+
+    <!-- <div class="topBar">
       <div class="readBg">
         <div class="topNew" 
              :class="desc==='new'?'active':''" 
@@ -12,7 +33,7 @@
       <img class="searchButton" 
            src="/pages/image/search.png"
            @click="toSearch()" />
-    </div>
+    </div> -->
 <view class="container">
   <!-- 今日话题 -->
   <view  v-if="desc==='hot'?false:true">
@@ -133,7 +154,7 @@
   
   <!-- 合成海报的canvas -->
   <canvas canvas-id="mycanvas" 
-          style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1000px;top:-1500px"></canvas>
+          style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1500px;top:-1500px"></canvas>
   </div>
 </template>
 
@@ -168,20 +189,16 @@
     },
 
     async onLoad(options){
-      let ctx = wx.createCanvasContext('mycanvas')
        if( wx.getStorageSync('desc') ){
           this.desc = wx.getStorageSync('desc');
-          console.log('this.desc ',this.desc )
+          // console.log('this.desc ',this.desc )
        }
        let that = this;
       // 今天日期
       this.todayDate = utils.formatTime()
-
       const code = await utils.getToken();
-      console.log('code', code)
       wx.setStorage({ key: 'token', data: code.data.data.token})
       this.getArticle({ page: 1, desc: this.desc, token: code.data.data.token }).then((res) => {
-        console.log('首页数据', res)
         if (res.data.code == api.STATUS) {
           this.articleList = res.data.data;
           let newList = [];
@@ -193,6 +210,16 @@
           this.newList = newList;
         }
       })
+
+      // 下载海报测试
+      // const ctx = wx.createCanvasContext('mycanvas');
+      //   utils.userDownloadPoster({
+      //     ctx:ctx,
+      //     title:'五四青年节，你觉得青春是什么你觉得青春是什么',
+      //     that:this,
+      //     qrcodePath: 'https://nvzhu.zealcdn.cn/public/qrcode/943b3fda-be61-723e-e4f9-97b9fd09910c.jpg'
+      // })
+
     },
 
     onHide(){
@@ -200,13 +227,7 @@
     }, 
 
     async onShow(){
-      console.log('onShow')
-      let userInfo = await wxRequest(api.getUserInfo,{},'POST')
-      console.log('user',userInfo)
-      if(userInfo.data.code === api.STATUS){
-        this.nickName = userInfo.data.data.nickName;
-        this.is_accredit = userInfo.data.data.is_accredit;
-      }
+
     },
 
     // 分享
@@ -225,7 +246,6 @@
         }
         
         
-
         wx.showTabBar()
         that.popup = false;
         let nickName = this.nickName || '我';
@@ -300,17 +320,19 @@
       },
       // 切换导航
       changeNav(value) {
-        console.log(value)
+        console.log(value.target.dataset)
+        let dataset = value.target.dataset;
+        let formid = value.target.formId;
         const that = this;
-        this.desc = value;
+        this.desc = dataset.val;
         this.page = 2;
         this.getArticle({
           page: 1,
-          desc: value
+          desc: dataset.val
         }).then(res => {
           if (res.data.code === api.STATUS) {
             that.articleList = res.data.data;
-          } else {
+          } else { 
             console.log('切换导航数据', res)
           }
         })
@@ -391,25 +413,37 @@
   }
 
   .topBar{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 750rpx;
-    height: 100rpx;
-    background: #7C48C6;
+    top:0;
+    left:0;
+    width:750rpx;
+    height:100rpx;
+    background:#fff;
     display:flex;
-    color:#C4A7EC;
+    color:#c4a7ec;
     font-size:30rpx;
-    justify-content:space-between;
+    justify-content:center;
     align-items:center;
-    padding: 40rpx;
-    box-sizing: border-box;
-    z-index: 1000;
+    padding:40rpx;
+    box-sizing:border-box;
+    z-index:1000;
+    position:relative;
+  }
+
+  .active{
+    color:#7c48c6;
+    position:relative;
+    font-weight:bolder;
+  }
+
+  .article-btn{
+    padding:0;
+    border-radius: 0;
+    text-align: left;
+    background: transparent;
   }
 
   .container{
     box-sizing: border-box;
-    margin-top: 100rpx;
     background: #f0f0f0;
   }
 

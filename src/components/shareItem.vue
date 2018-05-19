@@ -1,5 +1,5 @@
 <template>
-<div class="share-item"v-if="popup">
+<div class="share-item" v-if="popup">
     <div class="share-pop" @click="closePop" >
     </div>
     <view class="bottom">

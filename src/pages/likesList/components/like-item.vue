@@ -30,8 +30,10 @@ export default {
        }
      }
    },
-   created(){
-     console.log(this.itemData)
+   methods:{
+     toDetail(id){
+       this.$emit('toDetail',id)
+     }
    }
 }
 </script>

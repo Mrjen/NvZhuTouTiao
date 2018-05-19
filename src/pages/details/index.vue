@@ -5,7 +5,7 @@
     <view class="topic_top">
       <view class="topic_title">{{ArticleTtictle}}</view>
       <!-- <image class="topic_img" mode="widthFix" :src="detail.composer_cover"/> -->
-      <view class="content">
+      <view class="content" @click="inputBlur">
         <!-- <rich-text class="richtext" :nodes="ArticleContent" @click="tap"></rich-text> -->
         <wxParse :content="ArticleContent"/>
       </view>
@@ -48,236 +48,7 @@
     </view>
   </view>
 
-  <!-- 精彩评论 -->
-  <view class="comments" 
-        v-if="topComment.length>0?true:false">
-    <view class="wonderfulComments"><text>精彩评论</text><text v-if="topComment.length>0?true:false" class="wrtie-comment" @click="openArticleComm">发表评论</text></view>
-    <view class="commentsConter" 
-          v-for="(comm,cidx) in topComment" 
-          :key="comm.id">
-      <view class="display_flex space_b">
-        <view class="display_flex">
-          <image :src="comm.avatarUrl" class="head_img" @click="toUserCenter(comm.user_id)"/>
-          <view class="flex_end">
 
-            <view class="display_flex">
-              <view class="comment_name">{{comm.nickName}}</view>
-              <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
-              <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
-            </view>
-
-            <view class="floor display_flex">
-              <view>{{comm.create_time}}</view>
-              <view class="verticalBar"></view>
-              <view>{{comm.floor}}楼</view>
-            </view>
-
-          </view>
-        </view>
-        <view class="display_flex comm_comment">
-          <view class="nice" :class="comm.likestatus=='1'?'active_text':''">
-            <image class="niceImg" 
-                   mode="widthFix" 
-                   @click="likeCommentZan(cidx,comm.id,comm.likestatus, '精彩评论点赞')" 
-                   :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'"/> 
-                   {{comm.liketimes}}
-          </view>
-
-          <block>
-          <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
-              <image class="commentTalk" src="../image/commentTalk.png"/> 
-          </button>
-          <image v-else class="commentTalk" 
-                 @click="followCommentComment(comm.id, cidx, comm.user_id,'精彩评论一级', comm.nickName)" 
-                 src="../image/commentTalk.png"/>
-        </block>
-
-        </view>
-      </view>
-      
-      <block>
-        <button class="commentsTxt" open-type="getUserInfo" 
-                @getuserinfo="getUserInfo" 
-                v-if="is_accredit=='0'?true:false">
-                   {{comm.comment}}
-                </button>
-        <view class="commentsTxt" v-else @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)">
-            {{comm.comment}}
-        </view>
-      </block>
-      
-      <!-- <view class="commentsTxt">
-        {{comm.comment}}
-      </view> -->
-      <!-- 跟评 -->
-      <view class="com_comments" 
-            v-if="comm.follow_comment.length>0">
-        <view class="font_24 border_bottom last-noborder" 
-              v-for="(follow, fidx) in comm.follow_comment" 
-              :key="follow.floor">
-
-          <view class="user-info">
-            <view class="info-left">
-              <img class="info-avatar" :src="follow.avatarUrl" @click="toUserCenter(follow.user_id)"/>
-              <view class="info-info">
-                <view class="info-name">{{follow.nickName}}</view>
-                <view class="info-time">{{follow.create_time}}</view>
-              </view>
-            </view>
-
-            <view class="info-comm-btn">
-              <view class="zan">
-                <img v-if="follow.likestatus=='0'" 
-                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
-                     mode="widthFix" 
-                     src="../image/nice.png" alt=""/>
-                <img v-if="follow.likestatus=='1'" 
-                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '精彩评论')"
-                     mode="widthFix" 
-                     src="../image/h_nice.png" alt=""> {{follow.liketimes}}
-              </view>
-
-              <view class="info-comm-cion">
-                <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
-                    <image class="commentTalk" src="../image/commentTalk.png"/> 
-                </button>
-                <img v-else mode="widthFix" 
-                     @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '精彩评论二级', follow.nickName)" 
-                     src="../image/commentTalk.png"/>
-              </view>
-
-            </view>
-          </view>
-
-         <block>
-         <button class="talker" open-type="getUserInfo" 
-                    @getuserinfo="getUserInfo" v-if="is_accredit=='0'?true:false">
-              <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
-          </button>
-
-          <view class="talker" 
-                v-else
-                @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '精彩评论二级', follow.nickName)">
-                回复
-            <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
-          </view>
-          </block>
-
-        </view>
-        <view class="otherAnswer" 
-              v-if="comm.is_page" 
-              @click="readMoreFollowComm(comm.id, cidx, '点击精彩评论查看更多')">查看更多评论</view>
-        <view class="otherAnswer" v-if="!comm.is_page&&comm.follow_comment.length>2" @click="collapseComment(cidx,'收起精彩评论')">收起评论</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 最新评论 -->
-  <view class="comments" v-if="comment.length>0?true:false">
-    <view class="wonderfulComments"><text>最新评论</text><text v-if="topComment.length>0?false:true" class="wrtie-comment" @click="openArticleComm">发表评论</text></view>
-    <view class="commentsConter" 
-          v-for="(comm, cidx) in comment" 
-          :key="comm.id">
-      <view class="display_flex space_b">
-        <view class="display_flex">
-          <image :src="comm.avatarUrl" class="head_img"  @click="toUserCenter(comm.user_id)"/>
-          <view class="flex_end">
-            <view class="display_flex">
-              <view class="comment_name">{{comm.nickName}}</view>
-              <image v-if="comm.gender==='1'" src="../image/boy.png" class="gender" />
-              <image v-if="comm.gender==='2'" src="../image/girl.png" class="gender" />
-            </view>
-            <view class="floor display_flex">
-              <view>{{comm.create_time}}</view>
-              <view class="verticalBar"></view>
-              <view>{{comm.floor}}楼</view>
-            </view>
-          </view>
-        </view>
-        <view class="display_flex comm_comment">
-          <view class="nice" :class="comm.likestatus=='1'?'active_text':''">
-            <image class="niceImg" 
-                   @click="likeCommentZan(cidx,comm.id,comm.likestatus, '最新评论点赞')" 
-                   :src="comm.likestatus=='0'?'../image/nice.png':'../image/h_nice.png'"/> 
-                   {{comm.liketimes}}
-          </view>
-
-          <block>
-              <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
-                    <image class="commentTalk" src="../image/commentTalk.png"/>
-              </button>
-          <image v-else class="commentTalk" 
-                 @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)" 
-                 src="../image/commentTalk.png"/>
-         </block>
-
-        </view>
-      </view>
-      <block>
-        <button  class="commentsTxt" open-type="getUserInfo" 
-                @getuserinfo="getUserInfo" 
-                v-if="is_accredit=='0'?true:false">
-                   {{comm.comment}}
-                </button>
-        <view class="commentsTxt" v-else @click="followCommentComment(comm.id, cidx, comm.user_id, '最新评论一级', comm.nickName)">
-            {{comm.comment}}
-        </view>
-      </block>
-      <!-- 跟评 -->
-      <view class="com_comments" 
-            v-if="comm.follow_comment.length>0">
-        <view class="font_24 border_bottom last-noborder" 
-              v-for="(follow, fidx) in comm.follow_comment" 
-              :key="follow.floor">
-          <view class="user-info">
-            <view class="info-left">
-              <img class="info-avatar" :src="follow.avatarUrl"  @click="toUserCenter(follow.user_id)" />
-              <view class="info-info">
-                <view class="info-name">{{follow.nickName}}</view>
-                <view class="info-time">{{follow.create_time}}</view>
-              </view>
-            </view>
-            <view class="info-comm-btn">
-              <view class="zan">
-                <img v-if="follow.likestatus=='0'" 
-                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论',follow.nickName)"
-                     mode="widthFix" 
-                     src="../image/nice.png" alt="">
-                <img v-if="follow.likestatus=='1'" 
-                     @click="addFollowZan(follow.likestatus, follow.follow_comment_id, fidx, cidx, '最新评论',follow.nickName)"
-                     mode="widthFix" 
-                     src="../image/h_nice.png" alt=""> {{follow.liketimes}}
-              </view>
-
-              <view class="info-comm-cion">
-                  <button class="same-comm" v-if="is_accredit=='0'?true:false"  open-type="getUserInfo" @getuserinfo="getUserInfo">
-                    <image class="commentTalk" src="../image/commentTalk.png"/> 
-                 </button>
-                <img v-else mode="widthFix" 
-                     @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '最新评论二级', follow.nickName)" 
-                     src="../image/commentTalk.png"/>
-              </view>
-
-            </view>
-          </view>
-
-          <block>
-
-          <button class="talker" open-type="getUserInfo" 
-                    @getuserinfo="getUserInfo" v-if="is_accredit=='0'?true:false">
-              <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}
-          </button>
-          <view class="talker"
-                v-else
-                @click="followFollowComment(follow.user_id, comm.id, fidx, cidx, '最新评论二级', follow.nickName)">回复
-            <text>@{{follow.renickName}}：</text>{{follow.follow_comment}}</view>
-         </block>
-        </view>
-        <view class="otherAnswer" v-if="comm.is_page" @click="readMoreFollowComm(comm.id, cidx, '点击最新评论查看更多')">查看更多评论</view>
-        <view class="otherAnswer" v-if="!comm.is_page&&comm.follow_comment.length>2" @click="collapseComment(cidx,'收起最新评论')">收起评论</view>
-      </view>
-    </view>
-  </view>
 
   <view class="writeBg_zhanwei"></view>
 
@@ -288,27 +59,30 @@
       <!-- {{is_accredit}} -->
       <!-- v-model="commContent" -->
       <!-- @focus="inputGetFocus" -->
-      <textarea  :placeholder="inputPlaceholder"
-                 v-if="inputShow"
-                 auto-height="true"
-                 @focus="inputGetFocus"
-                 fixed="true"
-                 cursor-spacing="20"
-                 @input="inputComment"
-                 :value="inputValue"
-                 :cursor="inputCursor"
-                 @confirm="addComment"
-                 confirm-type="send" 
-                 placeholder-style="color:#999"
-                 :focus="inputFcus"
-                 class="inputRedict"/>
-                 <!--    :focus="inputFcus" -->
+      <!-- :value="inputValue" -->
+      <!--    :focus="inputFcus" -->
+      <!-- @input="inputComment" -->
+      <!-- cursor-spacing="30" -->
+      <block v-if="inputShow">
+        <textarea  :placeholder="inputPlaceholder"
+                    auto-height="true"
+                    @focus="inputGetFocus"
+                    fixed="true"
+                    :value="'我是一段文字'"
+                    cursor-spacing="14"
+                    @input="inputComment"
+                    v-model.lazy="commContent"
+                    :cursor="inputCursor"
+                    @confirm="addComment"
+                    confirm-type="send" 
+                    placeholder-style="color:#999"
+                    :focus="inputFcus"
+                    class="inputRedict"/>
+     </block>
+                 
   </view>
 
-  <!-- 仿input授权按钮 -->
-  <button v-else open-type="getUserInfo" @getuserinfo="getUserInfo" class="getinfo"> 
-      <view class="same-input">发表你的观点</view>
-  </button>
+  
   </block>
    <!--分享卡片-->
     <sharpop @openSharePopup="openSharePopup" 
@@ -320,10 +94,10 @@
   <!-- 合成海报的canvas -->
   <canvas canvas-id="mycanvas" style="width:750px; height:1334px; border:1px solid red;position:absolute;left:-1000px;top:-1500px"></canvas>
   
-  <view class="go-home" v-if="goHome" @click="goHomego">
+  <view class="go-home" @click="goHomego">
       <img src="https://gcdn.playonwechat.com/nvzhu/go-home.png"/>
   </view>
-  <!-- <button style="position:fixed;left:0;top:500rpx" @click="addComment">发送</button> -->
+  <button style="position:fixed;left:0;top:500rpx" @click="addComment">发送</button>
 
 </div>
 
@@ -372,8 +146,10 @@ export default {
         is_accredit: null,          // 是否授权
         userInfo:{},                // 用户信息
         inputShow: true,            // 输入框是否显示
-        shareQrcode: null,           // 分享二维码
-        goHome: true
+        shareQrcode: null,          // 分享二维码
+        requestOver: true,           // 防止重复提交
+        inputArr: [],
+        currentInputShow: 0          // 当前显示的input的index
       }
   },
   components: {
@@ -392,8 +168,7 @@ export default {
         wx.setStorage({ key:"article_id", data: options.id})
       }else if(options.scene){
           _article_id = options.scene;
-          console.log('scene')
-          this.goHome = true;
+          console.log('scene', options.scene)
       }
       console.log('_article_id', _article_id)
       // 保证获取到token
@@ -428,12 +203,11 @@ export default {
     wx.hideLoading()
   },
   async onShow(){
-      console.log('onShow')
       if(this.id===wx.getStorageSync('article_id')){
          console.log('相等')
       }
        this.commentDom = 'article';
-
+       
       let userInfo = await wxRequest(api.getUserInfo,{},'POST')
       this.inputShow = true;
       console.log('user',userInfo)
@@ -451,22 +225,33 @@ export default {
     //   输入评论
     inputComment(e){
        console.log(e)
-       this.commContent = e.mp.detail.value;
-       this.inputValue = e.mp.detail.value;
-       setTimeout(()=>{
-           this.inputCursor = e.mp.detail.cursor;
-           console.log('光标的位置', this.inputCursor)
-       },20)
+       var _input = true;
+       if(_input){
+        _input = false;
+         setTimeout(()=>{
+            this.commContent = e.mp.detail.value;
+            console.log('光标的位置1', e.mp.detail.cursor)
+            this.inputCursor = e.mp.detail.cursor+1;
+            console.log('光标的位置2', this.inputCursor)
+            _input = true;
+         },100)
+       }
+
+    //    this.inputValue = e.mp.detail.value;
+    //    setTimeout(()=>{
+    //        this.inputCursor = e.mp.detail.cursor;
+    //        console.log('光标的位置', this.inputCursor)
+    //    },20)
        
+    },
+
+    inputValueChange(e){
+       console.log(e)
     },
       // 返回首页
     goHomego(){
-        console.log(111)
         wx.switchTab({
-            url: '../index/main',
-            fail(res){
-                console.log(res)
-            }
+            url: '../index/main'
         })
     },
     // 文章评论
@@ -477,19 +262,18 @@ export default {
        this.commentDom = 'article';
        this.page = 2;
     },
+
     // input获取焦点
     inputGetFocus(){
-        console.log('获取焦点了')
-        if(this.inputFcus){
-           this.inputFcus = false;
-         }
-        setTimeout(()=>{
-            this.inputFcus = true;
-        },20)
+        // 这里先设置false再设置true防止本来是true无法获取焦点
+        this.inputFcus = false;
+        this.inputFcus = true;
+        console.log('输入框获取焦点了', this.inputFcus)
     },
     // input失去焦点
     inputBlur(){
-       console.log('失去焦点')
+       console.log('失去焦点');
+       this.inputFcus = false;
     },
     // 点击跟评图标
     followComment(id){
@@ -568,29 +352,31 @@ export default {
     // 创建追评
     async commentFollow(user_id, comment_id, fidx, cidx, comment_type){
         console.log('提交评论', user_id, comment_id, fidx, cidx, comment_type)
-         let follow = await wxRequest(api.followComment, { 
-             follow_comment: this.commContent, 
-             re_user_id: user_id, 
-             comment_id: this.comment_id
+         if(this.requestOver) {
+            this.requestOver = false;
+           let follow = await wxRequest(api.followComment, { 
+                follow_comment: this.commContent, 
+                re_user_id: user_id, 
+                comment_id: this.comment_id
              })
-         this.commContent = '';
-         console.log('follow',follow)
-         let comment = null;
-         if(comment_type==='精彩评论一级'){
-             console.log('精彩评论一级')
-             comment = this.topComment;
-         }else if(comment_type==='最新评论一级'){
-             console.log('最新评论一级')
-             comment = this.comment;
-         }else if(comment_type==='最新评论二级'){
-             console.log('最新评论二级')
-            comment = this.comment;
-         }else if(comment_type==='精彩评论二级'){
-            console.log('精彩评论二级')
-            comment = this.topComment;
-         }
-
-         console.log('comment', comment)
+            this.requestOver = true;
+            this.commContent = '';
+            console.log('follow',follow)
+            let comment = null;
+            if(comment_type==='精彩评论一级'){
+                console.log('精彩评论一级')
+                comment = this.topComment;
+            }else if(comment_type==='最新评论一级'){
+                console.log('最新评论一级')
+                comment = this.comment;
+            }else if(comment_type==='最新评论二级'){
+                console.log('最新评论二级')
+                comment = this.comment;
+            }else if(comment_type==='精彩评论二级'){
+                console.log('精彩评论二级')
+                comment = this.topComment;
+            }
+        //  console.log('comment', comment)
 
          if(follow.data.code === api.STATUS){
              tips.success('评论成功')
@@ -617,19 +403,35 @@ export default {
          this.inputFcus = false;
          this.inputValue = '';
          console.log('follow', follow)
+
+        //  解决input
+         this.currentInputShow++;
+         let inputArr = this.inputArr;
+         inputArr.map(el=>{
+             el.input = 'none';
+         })
+         console.log('this.currentInputShow++',this.currentInputShow++)
+         inputArr[this.currentInputShow].input = 'block';
+         this.inputArr = inputArr;
+        }
     },
     //   评论文章
     async commentArticle(){
         this.inputPlaceholder = '发表你的观点';
         console.log('评论文章')
-       let comm = await wxRequest(api.addComment,{ article_id: this.id, comment: this.commContent });
-       if(comm.data.code === api.STATUS){
+       if(this.requestOver){
+           this.requestOver = false;
+           let comm = await wxRequest(api.addComment,{ article_id: this.id, comment: this.commContent });
+           this.requestOver = true;
+         if(comm.data.code === api.STATUS){
            this.commContent = '';
            tips.success('评论成功')
            this.inputFcus = false;
            this.inputValue = '';
            this.comment = comm.data.data.list;
-       }
+        }
+      }
+       
        console.log('comm', comm)
     },
     // 点赞
@@ -766,9 +568,9 @@ export default {
     // 去用户中心
     toUserCenter(id){
         console.log('用户id', id)
-       wx.navigateTo({
-         url: `../otherUserCenter/main?id=${id}`
-       })
+    //    wx.navigateTo({
+    //      url: `../otherUserCenter/main?id=${id}`
+    //    })
     }
   },
 
@@ -842,6 +644,10 @@ page{
     position: relative;
     text-align: center;
 }
+
+// .detail .topic{
+//     margin: 0;
+// }
 
 
 .topic_title:after{
@@ -960,7 +766,7 @@ page{
 .content{
     image{
         width: 100% !important;
-        display: block;
+        // display: inline-block;
     }
 }
   .richtext {
@@ -1134,6 +940,25 @@ page{
             height: 26rpx;
             padding: 8rpx;
         }
+    }
+}
+
+// 暂无评论
+.no-comment{
+    width: 750rpx;
+    height: 300rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #f9f9f9;
+    color: #888;
+    margin-top: -30rpx;
+    img{
+        display: block;
+        width: 100rpx;
+        height: 100rpx;
+        margin-bottom: 20rpx;
     }
 }
 </style>

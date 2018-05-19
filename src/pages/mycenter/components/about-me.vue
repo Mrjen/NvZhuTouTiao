@@ -1,7 +1,8 @@
 <template>
   <div class="about-me">
      <view class="list">
-        <navigator class="list-item" 
+        <navigator class="list-item"
+              hover-class="none" 
               v-for="(nav,index) in listNav" 
               :key="index"
               :url="nav.url">
@@ -27,12 +28,6 @@ export default {
      }
     },
     
-  },
-  onLoad(){
-    console.log('onLoad222', this.listNav)
-  },
-  onShow(){
-    console.log('组件显示了')
   }
 }
 </script>
@@ -57,7 +52,8 @@ export default {
          font-weight: bold;
        }
        .text{
-         font-size: 28rpx;
+         font-size: 20rpx;
+         color: #eee;
        }
      }
      navigator:before{
@@ -68,7 +64,7 @@ export default {
        height: 50rpx;
        top: 50%;
        margin-top: -25rpx;
-       border-left: 1px solid rgba(255,255,255,.3);
+       border-left: 1px solid rgba(172,115,253,.5);
      }
      navigator:nth-of-type(1):before{
        display: none;
